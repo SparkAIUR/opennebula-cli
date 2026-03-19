@@ -35,3 +35,24 @@ def test_compat_help_entrypoints() -> None:
         result = run_compat(module, binary)
         assert result.returncode == 0
         assert expected in result.stdout
+
+
+def test_compat_entrypoint_accepts_leading_global_output_option() -> None:
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(ROOT / "src")
+    script = (
+        "import sys\n"
+        "from opennebula_cli.compat.onevnet import main\n"
+        "sys.argv = ['onevnet', '--output', 'json', 'list', '--help']\n"
+        "main()\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        check=False,
+        cwd=ROOT,
+        env=env,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "onevnet --output json list" in result.stdout

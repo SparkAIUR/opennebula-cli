@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 assh_repo="${ASSH_REPO:-/Volumes/S0/github/_personal/assh}"
 target_alias="${ONE_E2E_TARGET_ALIAS:-opennebula-e2e}"
-target_endpoint="${ONE_E2E_TARGET_ENDPOINT:-root@192.237.244.107}"
+target_endpoint="${ONE_E2E_TARGET_ENDPOINT:-}"
 remote_root="${ONE_E2E_REMOTE_ROOT:-/dev/shm/opennebula-cli-e2e}"
 mode="${ONE_E2E_MODE:-probe}"
 frontend_host="${ONE_E2E_FRONTEND_HOST:-localhost}"
@@ -43,10 +43,18 @@ cleanup() {
 
 trap cleanup EXIT
 
+if [[ -z "${target_endpoint}" ]]; then
+  printf 'ONE_E2E_TARGET_ENDPOINT must be set or an assh target with alias %s must already exist.\n' "${target_alias}" >&2
+fi
+
 assh init >/dev/null
-assh target add "${target_alias}" "${target_endpoint}" --scope repo >/dev/null
+if [[ -n "${target_endpoint}" ]]; then
+  assh target add "${target_alias}" "${target_endpoint}" --scope repo >/dev/null
+fi
 assh run "mkdir -p '${remote_root}/workspace'" --target "${target_alias}" >/dev/null
 assh push "${repo_root}/tools/e2e_bootstrap_opennebula.sh" "${remote_root}/e2e_bootstrap_opennebula.sh" --target "${target_alias}" --mode 755 >/dev/null
+assh push "${repo_root}/tools/e2e_seed_fixtures.sh" "${remote_root}/e2e_seed_fixtures.sh" --target "${target_alias}" --mode 755 >/dev/null
+assh push "${repo_root}/tools/e2e_cleanup_fixtures.sh" "${remote_root}/e2e_cleanup_fixtures.sh" --target "${target_alias}" --mode 755 >/dev/null
 
 set +e
 assh run "OPENNEBULA_SERIES='7.0' FRONTEND_HOSTNAME='${frontend_host}' bash '${remote_root}/e2e_bootstrap_opennebula.sh' '${remote_root}/workspace' '${mode}'" --target "${target_alias}" | tee "${artifact_root}/assh-run.txt"
@@ -80,7 +88,33 @@ assh fetch "/var/log/one/oned.log" "${artifact_root}/oned.log" --target "${targe
 set -e
 
 if [[ "${run_exit}" -eq 0 && "${mode}" != "probe" && "${validate_local}" == "1" ]]; then
+  set +e
+  assh run "bash '${remote_root}/e2e_cleanup_fixtures.sh' '${remote_root}/workspace'" --target "${target_alias}" | tee "${artifact_root}/assh-cleanup-before.txt"
+  cleanup_before_exit="${PIPESTATUS[0]}"
+  set -e
+  if [[ "${cleanup_before_exit}" -ne 0 ]]; then
+    exit "${cleanup_before_exit}"
+  fi
+
+  set +e
+  assh run "bash '${remote_root}/e2e_seed_fixtures.sh' '${remote_root}/workspace'" --target "${target_alias}" | tee "${artifact_root}/assh-seed.txt"
+  seed_exit="${PIPESTATUS[0]}"
+  set -e
+  set +e
+  assh fetch "${remote_root}/workspace/seed.log" "${artifact_root}/seed.log" --target "${target_alias}" >/dev/null
+  assh fetch "${remote_root}/workspace/seed-summary.txt" "${artifact_root}/seed-summary.txt" --target "${target_alias}" >/dev/null
+  assh fetch "${remote_root}/workspace/fixtures.env" "${artifact_root}/fixtures.env" --target "${target_alias}" >/dev/null
+  assh fetch "${remote_root}/workspace/fixtures.json" "${artifact_root}/fixtures.json" --target "${target_alias}" >/dev/null
+  set -e
+  if [[ "${seed_exit}" -ne 0 ]]; then
+    exit "${seed_exit}"
+  fi
+
   temp_auth_file="$(mktemp)"
+  if [[ -z "${target_endpoint}" ]]; then
+    printf 'ONE_E2E_TARGET_ENDPOINT must be set for local validation.\n' >&2
+    exit 65
+  fi
   ssh -o StrictHostKeyChecking=accept-new "${target_endpoint}" "cat /var/lib/one/.one/one_auth" > "${temp_auth_file}"
   chmod 0600 "${temp_auth_file}"
 
@@ -93,7 +127,7 @@ if [[ "${run_exit}" -eq 0 && "${mode}" != "probe" && "${validate_local}" == "1" 
     cd "${repo_root}"
     export ONE_XMLRPC="http://127.0.0.1:${local_port}/RPC2"
     export ONE_AUTH="${temp_auth_file}"
-    uv run pytest tests/e2e/test_live_opennebula.py -q
+    uv run pytest tests/e2e/test_live_opennebula.py tests/e2e/test_live_mutation_opennebula.py -q
   ) | tee "${artifact_root}/pytest-live.txt"
   pytest_exit="${PIPESTATUS[0]}"
 
@@ -108,13 +142,28 @@ if [[ "${run_exit}" -eq 0 && "${mode}" != "probe" && "${validate_local}" == "1" 
 
   if [[ "${pytest_exit}" -ne 0 || "${capture_exit}" -ne 0 ]]; then
     printf 'live_validation_failed\n' > "${artifact_root}/live-validation.status"
-    if [[ "${pytest_exit}" -ne 0 ]]; then
-      exit "${pytest_exit}"
-    fi
-    exit "${capture_exit}"
+  else
+    printf 'live_validation_passed\n' > "${artifact_root}/live-validation.status"
   fi
 
-  printf 'live_validation_passed\n' > "${artifact_root}/live-validation.status"
+  set +e
+  assh run "bash '${remote_root}/e2e_cleanup_fixtures.sh' '${remote_root}/workspace'" --target "${target_alias}" | tee "${artifact_root}/assh-cleanup-after.txt"
+  cleanup_after_exit="${PIPESTATUS[0]}"
+  set -e
+  set +e
+  assh fetch "${remote_root}/workspace/cleanup.log" "${artifact_root}/cleanup.log" --target "${target_alias}" >/dev/null
+  assh fetch "${remote_root}/workspace/cleanup-summary.txt" "${artifact_root}/cleanup-summary.txt" --target "${target_alias}" >/dev/null
+  set -e
+
+  if [[ "${pytest_exit}" -ne 0 ]]; then
+    exit "${pytest_exit}"
+  fi
+  if [[ "${capture_exit}" -ne 0 ]]; then
+    exit "${capture_exit}"
+  fi
+  if [[ "${cleanup_after_exit}" -ne 0 ]]; then
+    exit "${cleanup_after_exit}"
+  fi
 fi
 
 printf '%s\n' "${artifact_root}"

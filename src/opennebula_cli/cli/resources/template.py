@@ -83,6 +83,6 @@ def instantiate_template(
     state = _state(ctx)
     try:
         result = state.client().template.instantiate(template_id, name=name)
-        state.render(result, resource="template")
+        state.render(result, resource="vm")
     except Exception as exc:
         raise_cli_error(exc)

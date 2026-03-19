@@ -23,9 +23,16 @@ class TemplateService:
         return Template.from_raw(raw)
 
     def delete(self, template_id: int) -> Ack:
-        self._transport.call("one.template.delete", template_id)
+        self._transport.call("one.template.delete", template_id, False)
         return Ack(resource="template", id=template_id, action="delete")
 
     def instantiate(self, template_id: int, *, name: str | None = None) -> Ack:
-        self._transport.call("one.template.instantiate", template_id, name or "", False)
-        return Ack(resource="template", id=template_id, action="instantiate")
+        vm_id = self._transport.call(
+            "one.template.instantiate",
+            template_id,
+            name or "",
+            False,
+            "",
+            False,
+        )
+        return Ack(resource="vm", id=int(vm_id), action="instantiate")

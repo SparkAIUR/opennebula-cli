@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import time
+
+from opennebula_cli.sdk.exceptions import ApiError
 from opennebula_cli.sdk.models.common import Ack, WaitResult, ensure_list, object_get
 from opennebula_cli.sdk.models.vm import Vm
 from opennebula_cli.transports.base import OpenNebulaTransport
@@ -24,6 +27,27 @@ class VmService:
         raw = self._transport.call("one.vm.info", vm_id)
         return Vm.from_raw(raw)
 
+    @staticmethod
+    def _is_transient_poweroff_state(message: str) -> bool:
+        return (
+            'This action is not available for state' in message
+            and any(state in message for state in ("PENDING", "PROLOG", "BOOT"))
+        )
+
+    def _poweroff_action(self, action: str, vm_id: int, *, retry_timeout: float) -> None:
+        deadline = time.monotonic() + retry_timeout
+        while True:
+            try:
+                self._transport.call("one.vm.action", action, vm_id)
+                return
+            except ApiError as exc:
+                message = str(exc)
+                if not self._is_transient_poweroff_state(message):
+                    raise
+                if time.monotonic() >= deadline:
+                    raise
+                time.sleep(3.0)
+
     def poweroff(
         self,
         vm_id: int,
@@ -35,7 +59,7 @@ class VmService:
         show_progress: bool = True,
     ) -> Ack | WaitResult:
         action = "poweroff-hard" if hard else "poweroff"
-        self._transport.call("one.vm.action", action, vm_id)
+        self._poweroff_action(action, vm_id, retry_timeout=min(timeout if wait else 30.0, 60.0))
         if not wait:
             return Ack(resource="vm", id=vm_id, action=action)
         return wait_for(
