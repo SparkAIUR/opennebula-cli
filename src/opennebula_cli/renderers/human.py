@@ -25,16 +25,17 @@ def render_table(items: list[dict[str, object]], *, ctx: RenderContext) -> None:
     """Render a list of normalized mappings."""
 
     view = DEFAULT_VIEWS.get(ctx.resource or "")
+    view_columns = list(view.columns) if view is not None else []
     if not items:
         ctx.console.print("No results.")
         return
     if not ctx.interactive:
-        columns = [column.key for column in (view.columns if view else [])] or list(items[0].keys())
+        columns = [column.key for column in view_columns] or list(items[0].keys())
         for item in items:
             ctx.console.print("\t".join(str(item.get(column, "")) for column in columns))
         return
     table = Table(show_header=True, header_style="bold cyan")
-    column_specs: list[ColumnSpec] = list(view.columns) if view else []
+    column_specs: list[ColumnSpec] = view_columns
     if not column_specs:
         for key in items[0].keys():
             table.add_column(str(key).upper())
