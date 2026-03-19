@@ -4,14 +4,14 @@ The repo uses layered validation:
 
 - unit tests for isolated logic
 - snapshot tests for CLI and output drift
-- future golden tests for parity fixtures
-- future contract tests against real OpenNebula `7.0.x` environments
+- golden tests for imported private live summaries when available
+- contract tests against private read-only capture artifacts when available
 
 ## Local checks
 
 ```bash
 uv run ruff check .
-uv run mypy src
+uv run mypy src tests tools
 uv run pytest
 uv run python tools/check_catalog_schema.py
 ```
@@ -26,3 +26,14 @@ The bootstrap phase emphasizes:
 - renderer determinism
 - catalog loading
 - CLI help coverage
+- Wave 2 read-only service coverage
+- live capture redaction and importer coverage
+
+## Live capture workflow
+
+```bash
+tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
+uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
+```
+
+The `contract` and `golden` suites skip cleanly when private artifacts are not present under `refs/tasks/live-capture/`.

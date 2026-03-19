@@ -6,7 +6,7 @@
 uv sync --group dev
 uv run pytest
 uv run ruff check .
-uv run mypy src
+uv run mypy src tests tools
 uv build
 ```
 
@@ -17,6 +17,7 @@ uv build
 - update public docs for user-visible changes
 - update catalogs when the command surface changes
 - do not commit `refs/*`
+- keep live capture tooling read-only and add redaction tests for changes
 
 ## Private maintainer workspace
 
@@ -27,4 +28,11 @@ Tracked code may interact with the local context store via:
 ```bash
 uv run python tools/context_store.py init
 uv run python tools/context_store.py export-md
+```
+
+Read-only live capture workflow:
+
+```bash
+tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
+uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
 ```

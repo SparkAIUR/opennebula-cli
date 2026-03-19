@@ -28,6 +28,10 @@ This repository is in active bootstrap. The current milestone focuses on:
   - `onehost`
   - `oneimage`
   - `onetemplate`
+- Wave 2 read-only families:
+  - `onevnet`
+  - `onedatastore`
+  - `onecluster`
 - public Mintlify docs under `docs/`
 - local-only maintainer context tooling under `refs/`
 
@@ -64,7 +68,33 @@ export ONE_AUTH=$HOME/.one/one_auth
 uv run one vm list
 uv run onevm show 42
 uv run one image list --output json
+uv run one vnet list --output json
 ```
+
+## Help examples
+
+Every implemented subcommand includes 1-2 concrete usage examples in `--help`.
+
+```bash
+uv run one vm list --help
+uv run one template instantiate --help
+```
+
+## Live read-only capture
+
+When live credentials cannot be shared, use the private capture tooling to emit sanitized read-only observations:
+
+```bash
+tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
+uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
+```
+
+The capture path:
+
+- only executes allowlisted `--help`, `list`, and `show` commands
+- never executes create, update, delete, or lifecycle mutations
+- redacts endpoints, hostnames, IPs, MACs, and secret-like fields
+- writes private artifacts under `refs/tasks/live-capture/`
 
 ## SDK
 

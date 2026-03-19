@@ -12,6 +12,7 @@ Examples:
 one vm list
 one vm show 42
 one image delete 13
+one vnet list --output json
 ```
 
 Compatibility shims remain available for the official OpenNebula-style workflow:
@@ -20,6 +21,20 @@ Compatibility shims remain available for the official OpenNebula-style workflow:
 onevm list
 onehost flush 3
 oneimage show 13
+onecluster list
+```
+
+## Subcommand help examples
+
+Every implemented subcommand includes 1-2 examples directly in `--help`.
+
+Example:
+
+```text
+$ one vm list --help
+Examples:
+  one vm list --output json
+  onevm list --output json
 ```
 
 ## Output modes
@@ -34,3 +49,11 @@ oneimage show 13
 ## Wait behavior
 
 Wave 1 begins with waiter support on VM lifecycle commands such as `poweroff`.
+
+## Current Wave 2 scope
+
+Wave 2 currently exposes read-only `list` and `show` for:
+
+- `vnet`
+- `datastore`
+- `cluster`

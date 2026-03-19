@@ -47,6 +47,12 @@ The first milestone is `Foundation + Wave 1`:
 - renderers and waiters
 - `vm`, `host`, `image`, and `template` families
 
+The current extension milestone adds:
+
+- standardized help examples for every implemented subcommand
+- Wave 2 read-only families: `vnet`, `datastore`, `cluster`
+- private live-readonly capture and import tooling
+
 ## Canonical rules
 
 - Prefer compatibility over novelty.
@@ -74,6 +80,7 @@ Private local docs:
 - `refs/RULES.md`
 - `refs/KB.md`
 - `refs/docs/ctx/context.db`
+- `refs/tasks/live-capture/`
 
 ## Worker responsibilities
 
@@ -105,6 +112,13 @@ uv run python tools/check_catalog_schema.py
 uv build
 ```
 
+Read-only live observation workflow:
+
+```bash
+tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
+uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
+```
+
 Private context store workflow:
 
 ```bash
@@ -116,6 +130,6 @@ uv run python tools/context_store.py export-md
 ## Near-term roadmap
 
 1. Harden Wave 1 behavior and tests.
-2. Expand parity into network, datastore, cluster, and identity families.
-3. Add plugin diagnostics and first-party OneFlow boundary.
-4. Add golden and contract parity automation.
+2. Expand Wave 2 beyond read-only parity into mutating workflows.
+3. Expand parity into identity and policy families.
+4. Add plugin diagnostics and first-party OneFlow boundary.

@@ -11,7 +11,7 @@ from opennebula_cli.sdk import OneClient
 ```python
 OneClient.from_env()
 OneClient.from_profile("prod")
-OneClient(endpoint="https://one.example.com/RPC2", session="user:secret")
+OneClient.from_config(config)
 ```
 
 ## Current services
@@ -20,6 +20,20 @@ OneClient(endpoint="https://one.example.com/RPC2", session="user:secret")
 - `client.host`
 - `client.image`
 - `client.template`
+- `client.vnet`
+- `client.datastore`
+- `client.cluster`
+
+## Example
+
+```python
+from opennebula_cli.sdk import OneClient
+
+client = OneClient.from_env()
+
+for network in client.vnet.list():
+    print(network.id, network.name, network.type)
+```
 
 ## Current public exceptions
 

@@ -27,6 +27,9 @@ The implementation is organized as a layered CLI and SDK:
 - `host`
 - `image`
 - `template`
+- `vnet` (read-only)
+- `datastore` (read-only)
+- `cluster` (read-only)
 
 ## Design rules
 
@@ -34,3 +37,4 @@ The implementation is organized as a layered CLI and SDK:
 - Normalize backend payloads before they reach users.
 - Keep machine output deterministic.
 - Track parity explicitly in YAML catalogs.
+- Keep live observation tooling read-only and aggressively redacted.

@@ -13,6 +13,7 @@
 uv sync --group dev
 uv run one --help
 uv run onevm --help
+uv run onevnet --help
 ```
 
 ## Basic environment setup
@@ -36,6 +37,7 @@ uv run one vm list
 uv run one vm show 42
 uv run one host list
 uv run oneimage list --output json
+uv run one cluster list --output json
 ```
 
 ## SDK example
@@ -47,3 +49,18 @@ client = OneClient.from_env()
 vm = client.vm.show(42)
 print(vm.name, vm.state)
 ```
+
+## Safe live observation
+
+When credentials must remain local, use the read-only capture scripts and share only the redacted JSONL output:
+
+```bash
+tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
+uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
+```
+
+The capture tool:
+
+- only runs allowlisted `--help`, `list`, and `show` commands
+- auto-discovers a `show` target from the first observed `list` result
+- skips `show` cleanly when no IDs are available
