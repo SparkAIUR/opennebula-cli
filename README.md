@@ -4,6 +4,19 @@
 
 It preserves familiar workflows such as `onevm`, `onehost`, `oneimage`, and `onetemplate`, while also exposing a canonical `one <resource> <verb>` command tree and a typed Python SDK built for remote use from laptops, CI, and other automation systems.
 
+## Quickstart
+
+Below is the fastest way to get started using this tool.
+
+```bash
+uv tool install opennebula-cli
+
+export ONE_XMLRPC="http://127.0.0.1:2633/RPC2"
+export ONE_AUTH="oneadmin:password-for-auth"
+
+onevm list
+```
+
 ## Status
 
 This repository is in active bootstrap. The current milestone focuses on:
