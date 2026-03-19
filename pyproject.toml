@@ -1,0 +1,89 @@
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
+
+[project]
+name = "opennebula-cli"
+version = "0.1.0"
+description = "Modern Python CLI and SDK for OpenNebula"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "SparkAIUR" }
+]
+keywords = ["opennebula", "cli", "sdk", "xml-rpc", "cloud"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Typing :: Typed",
+]
+dependencies = [
+  "platformdirs>=4.2,<5",
+  "pydantic>=2.12.5,<3",
+  "PyYAML>=6.0,<7",
+  "pyone>=7.0.2,<8",
+  "rich>=14.3.3,<15",
+  "typer>=0.24.1,<0.25",
+]
+
+[project.urls]
+Homepage = "https://github.com/SparkAIUR/opennebula-cli"
+Repository = "https://github.com/SparkAIUR/opennebula-cli"
+Issues = "https://github.com/SparkAIUR/opennebula-cli/issues"
+
+[project.scripts]
+one = "opennebula_cli.__main__:main"
+onevm = "opennebula_cli.compat.onevm:main"
+onehost = "opennebula_cli.compat.onehost:main"
+oneimage = "opennebula_cli.compat.oneimage:main"
+onetemplate = "opennebula_cli.compat.onetemplate:main"
+
+[project.entry-points."opennebula_cli.plugins"]
+builtin = "opennebula_cli.plugins.builtin:plugin"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.18.2,<2",
+  "pytest>=8.4.2,<9",
+  "pytest-cov>=7,<8",
+  "pytest-xdist>=3.8.0,<4",
+  "ruff>=0.13.1,<0.14",
+]
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"
+markers = [
+  "contract: live OpenNebula contract validation",
+  "e2e: environment-driven end-to-end smoke tests",
+  "golden: parity fixture tests",
+  "snapshot: CLI or renderer snapshot tests",
+]
+
+[tool.mypy]
+python_version = "3.11"
+pretty = true
+strict = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["pyone", "yaml"]
+ignore_missing_imports = true

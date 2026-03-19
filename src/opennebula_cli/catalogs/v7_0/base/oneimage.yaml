@@ -1,0 +1,41 @@
+family: image
+script: oneimage
+version: "7.0"
+commands:
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.imagepool.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, csv, raw]
+    args: []
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: image_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.delete
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: image_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli

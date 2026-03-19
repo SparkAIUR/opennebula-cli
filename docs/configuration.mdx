@@ -1,0 +1,47 @@
+# Configuration
+
+Runtime configuration follows this precedence:
+
+1. CLI flags
+2. selected profile values
+3. environment variables
+4. defaults
+
+## Supported environment variables
+
+- `ONE_XMLRPC`
+- `ONE_AUTH`
+- `ONE_XMLRPC_TIMEOUT`
+- `ONE_POOL_PAGE_SIZE`
+- `ONE_PAGER`
+- `ONE_LISTCONF`
+- `ONE_CERT_DIR`
+- `ONE_DISABLE_SSL_VERIFY`
+
+## Profiles
+
+Profiles are loaded from the platform config directory via `platformdirs`.
+
+Example:
+
+```toml
+default_profile = "prod"
+
+[profiles.prod]
+endpoint = "https://one.example.com/RPC2"
+auth = "file:/home/alice/.one/prod_auth"
+output = "table"
+timeout = 60
+verify_ssl = true
+```
+
+## Auth resolution
+
+Supported auth forms:
+
+- path to auth file
+- `file:/path/to/file`
+- `literal:user:secret`
+- `--user` and prompted password/token
+
+The default compatibility fallback is `~/.one/one_auth`.

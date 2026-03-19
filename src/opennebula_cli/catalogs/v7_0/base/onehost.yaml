@@ -1,0 +1,68 @@
+family: host
+script: onehost
+version: "7.0"
+commands:
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.hostpool.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, csv, raw]
+    args: []
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: host_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  enable:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.enable
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: host_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  disable:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.enable
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: host_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  flush:
+    aliases: []
+    handler: composite
+    backend_method: one.host.flush
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: host_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+      notes: Composite behavior still needs parity validation against 7.0.x.

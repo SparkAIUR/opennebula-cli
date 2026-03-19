@@ -1,0 +1,46 @@
+family: vm
+script: onevm
+version: "7.0"
+commands:
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.vmpool.infoextended
+    supports_wait: false
+    outputs: [table, json, yaml, xml, csv, raw]
+    args: []
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+      notes: Uses infoextended as the preferred VM list path.
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  poweroff:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: true
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options:
+      - name: hard
+        type: bool
+      - name: wait
+        type: bool
+    parity:
+      status: scaffolded
+      source: official-cli

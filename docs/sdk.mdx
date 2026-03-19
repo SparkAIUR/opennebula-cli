@@ -1,0 +1,36 @@
+# SDK
+
+The public SDK entrypoint is:
+
+```python
+from opennebula_cli.sdk import OneClient
+```
+
+## Constructors
+
+```python
+OneClient.from_env()
+OneClient.from_profile("prod")
+OneClient(endpoint="https://one.example.com/RPC2", session="user:secret")
+```
+
+## Current services
+
+- `client.vm`
+- `client.host`
+- `client.image`
+- `client.template`
+
+## Current public exceptions
+
+- `OpenNebulaError`
+- `AuthError`
+- `ConnectionError`
+- `TlsError`
+- `TimeoutError`
+- `ApiError`
+- `PluginError`
+
+## Rule for contributors
+
+If a CLI feature requires new logic, implement it through the service layer so the SDK can reuse it.

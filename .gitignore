@@ -1,1 +1,18 @@
-refs
+.DS_Store
+.coverage
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+dist/
+build/
+htmlcov/
+.python-version.local
+
+# Private workspace and internal notes
+refs/**
+
+# Keep public docs and source tracked
+!refs/
+

@@ -1,0 +1,36 @@
+# Architecture
+
+The implementation is organized as a layered CLI and SDK:
+
+1. `cli/`
+   Typer command tree and compatibility shims.
+2. `auth/` and `config/`
+   Profile loading, env resolution, auth parsing, and redaction.
+3. `transports/`
+   PyONE-backed XML-RPC transport plus raw XML-RPC fallback.
+4. `services/`
+   Reusable typed operations for resources.
+5. `sdk/`
+   Public client, exceptions, and normalized models.
+6. `renderers/`
+   Human and machine output layers.
+7. `waiters/`
+   Polling support for long-running actions.
+8. `registry/` and `catalogs/`
+   Parity metadata and command inventory.
+9. `plugins/`
+   Future extension boundary.
+
+## Current resource coverage
+
+- `vm`
+- `host`
+- `image`
+- `template`
+
+## Design rules
+
+- Keep CLI handlers thin.
+- Normalize backend payloads before they reach users.
+- Keep machine output deterministic.
+- Track parity explicitly in YAML catalogs.

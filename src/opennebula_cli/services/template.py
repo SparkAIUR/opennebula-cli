@@ -1,0 +1,31 @@
+"""Template service."""
+
+from __future__ import annotations
+
+from opennebula_cli.sdk.models.common import Ack, ensure_list, object_get
+from opennebula_cli.sdk.models.template import Template
+from opennebula_cli.transports.base import OpenNebulaTransport
+
+
+class TemplateService:
+    """Typed VM template operations."""
+
+    def __init__(self, transport: OpenNebulaTransport) -> None:
+        self._transport = transport
+
+    def list(self) -> list[Template]:
+        raw = self._transport.call("one.templatepool.info", -2, -1, -1)
+        items = ensure_list(object_get(raw, "VMTEMPLATE"))
+        return [Template.from_raw(item) for item in items]
+
+    def show(self, template_id: int) -> Template:
+        raw = self._transport.call("one.template.info", template_id)
+        return Template.from_raw(raw)
+
+    def delete(self, template_id: int) -> Ack:
+        self._transport.call("one.template.delete", template_id)
+        return Ack(resource="template", id=template_id, action="delete")
+
+    def instantiate(self, template_id: int, *, name: str | None = None) -> Ack:
+        self._transport.call("one.template.instantiate", template_id, name or "", False)
+        return Ack(resource="template", id=template_id, action="instantiate")

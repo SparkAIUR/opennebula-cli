@@ -1,0 +1,56 @@
+family: template
+script: onetemplate
+version: "7.0"
+commands:
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.templatepool.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, csv, raw]
+    args: []
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: template_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.delete
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: template_id
+        type: int
+    options: []
+    parity:
+      status: scaffolded
+      source: official-cli
+  instantiate:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.instantiate
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: template_id
+        type: int
+    options:
+      - name: name
+        type: str
+    parity:
+      status: scaffolded
+      source: official-cli

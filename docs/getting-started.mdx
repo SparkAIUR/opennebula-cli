@@ -1,0 +1,49 @@
+# Getting Started
+
+## Requirements
+
+- Python `3.11+`
+- `uv`
+- network access to an OpenNebula `7.0.x` endpoint
+- credentials in an auth file or literal `user:secret` format
+
+## Local development setup
+
+```bash
+uv sync --group dev
+uv run one --help
+uv run onevm --help
+```
+
+## Basic environment setup
+
+```bash
+export ONE_XMLRPC=https://opennebula.example.com/RPC2
+export ONE_AUTH=$HOME/.one/one_auth
+```
+
+Auth resolution supports:
+
+- file path values
+- `file:/path/to/authfile`
+- `literal:user:secret`
+- `--user` with secure password prompt
+
+## CLI examples
+
+```bash
+uv run one vm list
+uv run one vm show 42
+uv run one host list
+uv run oneimage list --output json
+```
+
+## SDK example
+
+```python
+from opennebula_cli.sdk import OneClient
+
+client = OneClient.from_env()
+vm = client.vm.show(42)
+print(vm.name, vm.state)
+```

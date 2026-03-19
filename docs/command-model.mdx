@@ -1,0 +1,36 @@
+# Command Model
+
+The preferred command grammar is:
+
+```bash
+one <resource> <verb> [args] [options]
+```
+
+Examples:
+
+```bash
+one vm list
+one vm show 42
+one image delete 13
+```
+
+Compatibility shims remain available for the official OpenNebula-style workflow:
+
+```bash
+onevm list
+onehost flush 3
+oneimage show 13
+```
+
+## Output modes
+
+- `table`
+- `json`
+- `yaml`
+- `xml`
+- `csv`
+- `raw`
+
+## Wait behavior
+
+Wave 1 begins with waiter support on VM lifecycle commands such as `poweroff`.

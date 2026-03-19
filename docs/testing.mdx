@@ -1,0 +1,28 @@
+# Testing
+
+The repo uses layered validation:
+
+- unit tests for isolated logic
+- snapshot tests for CLI and output drift
+- future golden tests for parity fixtures
+- future contract tests against real OpenNebula `7.0.x` environments
+
+## Local checks
+
+```bash
+uv run ruff check .
+uv run mypy src
+uv run pytest
+uv run python tools/check_catalog_schema.py
+```
+
+## Current focus
+
+The bootstrap phase emphasizes:
+
+- auth parsing
+- config resolution
+- context store behavior
+- renderer determinism
+- catalog loading
+- CLI help coverage
