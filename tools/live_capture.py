@@ -17,6 +17,11 @@ from opennebula_cli.dev.live_capture import (
 app = typer.Typer(no_args_is_help=True, help="Capture safe read-only OpenNebula observations.")
 
 
+@app.callback()
+def main() -> None:
+    """Entry point for capture subcommands."""
+
+
 @app.command("capture")
 def capture(
     family: Annotated[list[str] | None, typer.Option("--family")] = None,

@@ -121,21 +121,27 @@ def ensure_safe_command(argv: Sequence[str]) -> None:
 def _validate_canonical_command(argv: Sequence[str]) -> None:
     if len(argv) < 3:
         raise ValueError(f"Incomplete canonical command: {' '.join(argv)}")
-    family = argv[1]
+    index = 1
+    if len(argv) >= 4 and argv[1] == "--output" and argv[2] == "json":
+        index = 3
+    family = argv[index]
     if family not in IMPLEMENTED_COMMANDS:
         raise ValueError(f"Unsupported family: {family}")
-    if len(argv) == 3 and argv[2] == "--help":
-        return
-    if len(argv) == 4 and argv[3] == "--help" and argv[2] in IMPLEMENTED_COMMANDS[family]:
-        return
-    if len(argv) == 5 and list(argv[2:]) == ["list", "--output", "json"]:
+    if len(argv) == index + 2 and argv[index + 1] == "--help":
         return
     if (
-        len(argv) == 6
-        and argv[2] == "show"
-        and _is_int_like(argv[3])
-        and argv[4] == "--output"
-        and argv[5] == "json"
+        len(argv) == index + 3
+        and argv[index + 2] == "--help"
+        and argv[index + 1] in IMPLEMENTED_COMMANDS[family]
+    ):
+        return
+    if index == 3 and len(argv) == 5 and argv[index + 1] == "list":
+        return
+    if (
+        index == 3
+        and len(argv) == 6
+        and argv[index + 1] == "show"
+        and _is_int_like(argv[index + 2])
     ):
         return
     raise ValueError(f"Unsafe canonical command rejected: {' '.join(argv)}")
@@ -239,7 +245,7 @@ def capture_all(
         list_command = CaptureCommand(
             family=family,
             verb="list",
-            argv=("one", family, "list", "--output", "json"),
+            argv=("one", "--output", "json", family, "list"),
             capture_kind="data",
         )
         list_record = capture_command(list_command, repo_root=repo_root, timestamp=timestamp)
@@ -255,7 +261,7 @@ def capture_all(
                         family=family,
                         verb="show",
                         capture_kind="data",
-                        command=f"one {family} show <id> --output json",
+                        command=f"one --output json {family} show <id>",
                         safe_readonly=True,
                         status="skipped_no_resources",
                         exit_code=0,
@@ -271,7 +277,7 @@ def capture_all(
         show_command = CaptureCommand(
             family=family,
             verb="show",
-            argv=("one", family, "show", str(first_id), "--output", "json"),
+            argv=("one", "--output", "json", family, "show", str(first_id)),
             capture_kind="data",
         )
         records.append(
@@ -328,9 +334,7 @@ def capture_command(command: CaptureCommand, *, repo_root: Path, timestamp: str)
 
 
 def _safe_env(source: Mapping[str, str]) -> dict[str, str]:
-    env = dict(source)
-    env.pop("ONE_AUTH", None)
-    return env
+    return dict(source)
 
 
 def _run_argv(command: CaptureCommand) -> list[str]:

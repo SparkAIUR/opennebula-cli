@@ -4,6 +4,7 @@ from pathlib import Path
 
 from opennebula_cli.dev.context_store import ContextStore
 from opennebula_cli.dev.live_capture import (
+    _safe_env,
     ensure_safe_command,
     import_capture_records,
     jsonl_load,
@@ -39,6 +40,13 @@ def test_ensure_safe_command_rejects_mutation() -> None:
         raise AssertionError("Mutating commands must be rejected.")
 
 
+def test_safe_env_preserves_runtime_auth_inputs() -> None:
+    env = _safe_env({"ONE_XMLRPC": "http://127.0.0.1:2633/RPC2", "ONE_AUTH": "/tmp/one_auth"})
+
+    assert env["ONE_XMLRPC"] == "http://127.0.0.1:2633/RPC2"
+    assert env["ONE_AUTH"] == "/tmp/one_auth"
+
+
 def test_import_capture_records_updates_context_store(tmp_path: Path) -> None:
     records = jsonl_load(
         "\n".join(
@@ -46,7 +54,7 @@ def test_import_capture_records_updates_context_store(tmp_path: Path) -> None:
                 '{"record_type":"meta","timestamp":"20260318T010203Z","families":["vm"]}',
                 (
                     '{"record_type":"command","timestamp":"20260318T010203Z","family":"vm",'
-                    '"verb":"list","capture_kind":"data","command":"one vm list --output json",'
+                    '"verb":"list","capture_kind":"data","command":"one --output json vm list",'
                     '"safe_readonly":true,"status":"ok","exit_code":0,"stdout_redacted":"[]",'
                     '"stderr_redacted":"","observed_ids":[],"redaction_count":0}'
                 ),

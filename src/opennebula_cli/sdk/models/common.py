@@ -7,6 +7,15 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+PYONE_INTERNAL_ATTRS = {
+    "custom_attrs",
+    "gds_collector_",
+    "gds_elementtree_node_",
+    "ns_prefix_",
+    "original_tagname_",
+    "parent_object_",
+}
+
 
 def object_get(raw: object, key: str, default: Any = None) -> Any:
     """Get a field from a mapping-like or object-like backend response."""
@@ -30,35 +39,86 @@ def ensure_list(value: object) -> list[object]:
     return [value]
 
 
-def normalize_mapping(raw: object) -> dict[str, Any]:
+def _public_object_items(raw: object) -> list[tuple[str, object]]:
+    """Return object items and skip known backend bookkeeping fields."""
+
+    if not hasattr(raw, "__dict__"):
+        return []
+    return [
+        (key, value)
+        for key, value in vars(raw).items()
+        if not key.startswith("_")
+        and not key.endswith("_")
+        and not key.endswith("_nsprefix_")
+        and key not in PYONE_INTERNAL_ATTRS
+    ]
+
+
+def normalize_mapping(
+    raw: object,
+    *,
+    _seen: set[int] | None = None,
+) -> dict[str, Any]:
     """Recursively normalize a backend object to plain Python structures."""
 
     if isinstance(raw, BaseModel):
         return raw.model_dump(mode="json")
+
+    seen = _seen or set()
+    raw_id = id(raw)
+    if raw_id in seen:
+        return {}
+
     if isinstance(raw, Mapping):
-        return {str(key): normalize_value(value) for key, value in raw.items()}
-    if hasattr(raw, "__dict__"):
-        return {
-            key: normalize_value(value)
-            for key, value in vars(raw).items()
-            if not key.startswith("_")
-        }
+        seen.add(raw_id)
+        try:
+            return {
+                str(key): normalize_value(value, _seen=seen)
+                for key, value in raw.items()
+            }
+        finally:
+            seen.remove(raw_id)
+
+    object_items = _public_object_items(raw)
+    if object_items:
+        seen.add(raw_id)
+        try:
+            return {key: normalize_value(value, _seen=seen) for key, value in object_items}
+        finally:
+            seen.remove(raw_id)
+
     return {"value": raw}
 
 
-def normalize_value(raw: object) -> Any:
+def normalize_value(raw: object, *, _seen: set[int] | None = None) -> Any:
     """Recursively normalize arbitrary backend values."""
 
     if isinstance(raw, BaseModel):
         return raw.model_dump(mode="json")
+    if raw is None or isinstance(raw, (str, int, float, bool)):
+        return raw
+
+    seen = _seen or set()
+    raw_id = id(raw)
+    if raw_id in seen:
+        return None
+
     if isinstance(raw, Mapping):
-        return {str(key): normalize_value(value) for key, value in raw.items()}
+        return normalize_mapping(raw, _seen=seen)
     if isinstance(raw, list):
-        return [normalize_value(item) for item in raw]
+        seen.add(raw_id)
+        try:
+            return [normalize_value(item, _seen=seen) for item in raw]
+        finally:
+            seen.remove(raw_id)
     if isinstance(raw, tuple):
-        return [normalize_value(item) for item in raw]
-    if hasattr(raw, "__dict__"):
-        return normalize_mapping(raw)
+        seen.add(raw_id)
+        try:
+            return [normalize_value(item, _seen=seen) for item in raw]
+        finally:
+            seen.remove(raw_id)
+    if _public_object_items(raw):
+        return normalize_mapping(raw, _seen=seen)
     return raw
 
 

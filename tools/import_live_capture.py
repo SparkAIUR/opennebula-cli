@@ -19,6 +19,11 @@ from opennebula_cli.dev.live_capture import (
 app = typer.Typer(no_args_is_help=True, help="Import JSONL live capture records.")
 
 
+@app.callback()
+def main() -> None:
+    """Entry point for import subcommands."""
+
+
 @app.command("import")
 def import_capture(
     input_path: Annotated[Path | None, typer.Option("--input")] = None,
