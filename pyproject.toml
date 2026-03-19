@@ -45,6 +45,9 @@ onevm = "opennebula_cli.compat.onevm:main"
 onehost = "opennebula_cli.compat.onehost:main"
 oneimage = "opennebula_cli.compat.oneimage:main"
 onetemplate = "opennebula_cli.compat.onetemplate:main"
+onevnet = "opennebula_cli.compat.onevnet:main"
+onedatastore = "opennebula_cli.compat.onedatastore:main"
+onecluster = "opennebula_cli.compat.onecluster:main"
 
 [project.entry-points."opennebula_cli.plugins"]
 builtin = "opennebula_cli.plugins.builtin:plugin"

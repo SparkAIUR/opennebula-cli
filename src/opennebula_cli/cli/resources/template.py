@@ -5,6 +5,7 @@ from typing import cast
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
+from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage VM templates.")
@@ -14,7 +15,10 @@ def _state(ctx: typer.Context) -> AppState:
     return cast(AppState, ctx.obj)
 
 
-@app.command("list")
+@app.command(
+    "list",
+    epilog=command_epilog("template", "list", "--output json"),
+)
 def list_templates(ctx: typer.Context) -> None:
     """List templates."""
 
@@ -25,7 +29,10 @@ def list_templates(ctx: typer.Context) -> None:
         raise_cli_error(exc)
 
 
-@app.command("show")
+@app.command(
+    "show",
+    epilog=command_epilog("template", "show", "24", "24 --output yaml"),
+)
 def show_template(ctx: typer.Context, template_id: int) -> None:
     """Show a template."""
 
@@ -36,7 +43,16 @@ def show_template(ctx: typer.Context, template_id: int) -> None:
         raise_cli_error(exc)
 
 
-@app.command("delete")
+@app.command(
+    "delete",
+    epilog=command_epilog(
+        "template",
+        "delete",
+        "24",
+        "24 --output json",
+        caution="This command changes live resources.",
+    ),
+)
 def delete_template(ctx: typer.Context, template_id: int) -> None:
     """Delete a template."""
 
@@ -47,7 +63,16 @@ def delete_template(ctx: typer.Context, template_id: int) -> None:
         raise_cli_error(exc)
 
 
-@app.command("instantiate")
+@app.command(
+    "instantiate",
+    epilog=command_epilog(
+        "template",
+        "instantiate",
+        "24",
+        '24 --name "build-vm"',
+        caution="This command changes live resources.",
+    ),
+)
 def instantiate_template(
     ctx: typer.Context,
     template_id: int,

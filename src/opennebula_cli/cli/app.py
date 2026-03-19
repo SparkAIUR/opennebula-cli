@@ -3,7 +3,7 @@
 import click
 import typer
 
-from opennebula_cli.cli.resources import host, image, template, vm
+from opennebula_cli.cli.resources import cluster, datastore, host, image, template, vm, vnet
 from opennebula_cli.cli.state import build_app_state
 
 app = typer.Typer(
@@ -16,6 +16,9 @@ app.add_typer(vm.app, name="vm")
 app.add_typer(host.app, name="host")
 app.add_typer(image.app, name="image")
 app.add_typer(template.app, name="template")
+app.add_typer(vnet.app, name="vnet")
+app.add_typer(datastore.app, name="datastore")
+app.add_typer(cluster.app, name="cluster")
 
 
 @app.callback()

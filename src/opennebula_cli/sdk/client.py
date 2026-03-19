@@ -6,7 +6,15 @@ from dataclasses import dataclass
 
 from opennebula_cli.config.loader import resolve_runtime_config
 from opennebula_cli.config.models import ResolvedConfig
-from opennebula_cli.services import HostService, ImageService, TemplateService, VmService
+from opennebula_cli.services import (
+    ClusterService,
+    DatastoreService,
+    HostService,
+    ImageService,
+    TemplateService,
+    VmService,
+    VnetService,
+)
 from opennebula_cli.transports.base import OpenNebulaTransport
 from opennebula_cli.transports.pyone_adapter import PyoneTransport
 from opennebula_cli.transports.xmlrpc_raw import RawXmlRpcTransport
@@ -34,9 +42,18 @@ def build_transport(config: ResolvedConfig, *, backend: str = "pyone") -> OpenNe
 
 @dataclass(slots=True)
 class OneClient:
-    """Public typed OpenNebula SDK client."""
+    """Public typed OpenNebula SDK client.
+
+    Example:
+        >>> client = OneClient.from_env()
+        >>> client.vm.list()
+        [...]
+    """
 
     config: ResolvedConfig
+    cluster: ClusterService
+    datastore: DatastoreService
+    vnet: VnetService
     vm: VmService
     host: HostService
     image: ImageService
@@ -44,9 +61,14 @@ class OneClient:
 
     @classmethod
     def from_config(cls, config: ResolvedConfig, *, backend: str = "pyone") -> OneClient:
+        """Build a client from a fully resolved configuration object."""
+
         transport = build_transport(config, backend=backend)
         return cls(
             config=config,
+            cluster=ClusterService(transport),
+            datastore=DatastoreService(transport),
+            vnet=VnetService(transport),
             vm=VmService(transport),
             host=HostService(transport),
             image=ImageService(transport),

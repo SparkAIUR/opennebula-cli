@@ -62,4 +62,31 @@ DEFAULT_VIEWS: dict[str, ViewSpec] = {
             ColumnSpec(key="regtime", label="REGTIME"),
         ],
     ),
+    "vnet": ViewSpec(
+        name="vnet",
+        columns=[
+            ColumnSpec(key="id", label="ID", justify="right"),
+            ColumnSpec(key="name", label="NAME"),
+            ColumnSpec(key="type", label="TYPE"),
+            ColumnSpec(key="bridge", label="BRIDGE"),
+        ],
+    ),
+    "datastore": ViewSpec(
+        name="datastore",
+        columns=[
+            ColumnSpec(key="id", label="ID", justify="right"),
+            ColumnSpec(key="name", label="NAME"),
+            ColumnSpec(key="state", label="STATE"),
+            ColumnSpec(key="type", label="TYPE"),
+        ],
+    ),
+    "cluster": ViewSpec(
+        name="cluster",
+        columns=[
+            ColumnSpec(key="id", label="ID", justify="right"),
+            ColumnSpec(key="name", label="NAME"),
+            ColumnSpec(key="hosts", label="HOSTS"),
+            ColumnSpec(key="datastores", label="DATASTORES"),
+        ],
+    ),
 }

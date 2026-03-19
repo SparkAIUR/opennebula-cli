@@ -11,7 +11,7 @@ commands:
     args: []
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
   show:
     aliases: []
@@ -24,7 +24,7 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
   enable:
     aliases: []
@@ -37,7 +37,7 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: cataloged
       source: official-cli
   disable:
     aliases: []
@@ -50,7 +50,7 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: cataloged
       source: official-cli
   flush:
     aliases: []
@@ -63,6 +63,6 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
       notes: Composite behavior still needs parity validation against 7.0.x.

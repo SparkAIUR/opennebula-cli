@@ -5,6 +5,7 @@ from typing import cast
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
+from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage images.")
@@ -14,7 +15,10 @@ def _state(ctx: typer.Context) -> AppState:
     return cast(AppState, ctx.obj)
 
 
-@app.command("list")
+@app.command(
+    "list",
+    epilog=command_epilog("image", "list", "--output json"),
+)
 def list_images(ctx: typer.Context) -> None:
     """List images."""
 
@@ -25,7 +29,10 @@ def list_images(ctx: typer.Context) -> None:
         raise_cli_error(exc)
 
 
-@app.command("show")
+@app.command(
+    "show",
+    epilog=command_epilog("image", "show", "18", "18 --output yaml"),
+)
 def show_image(ctx: typer.Context, image_id: int) -> None:
     """Show an image."""
 
@@ -36,7 +43,16 @@ def show_image(ctx: typer.Context, image_id: int) -> None:
         raise_cli_error(exc)
 
 
-@app.command("delete")
+@app.command(
+    "delete",
+    epilog=command_epilog(
+        "image",
+        "delete",
+        "18",
+        "18 --output json",
+        caution="This command changes live resources.",
+    ),
+)
 def delete_image(ctx: typer.Context, image_id: int) -> None:
     """Delete an image."""
 

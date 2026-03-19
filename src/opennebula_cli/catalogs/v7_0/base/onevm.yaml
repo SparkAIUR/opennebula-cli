@@ -11,7 +11,7 @@ commands:
     args: []
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
       notes: Uses infoextended as the preferred VM list path.
   show:
@@ -25,7 +25,7 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
   poweroff:
     aliases: []
@@ -42,5 +42,5 @@ commands:
       - name: wait
         type: bool
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli

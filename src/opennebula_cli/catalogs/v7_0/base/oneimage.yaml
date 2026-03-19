@@ -11,7 +11,7 @@ commands:
     args: []
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
   show:
     aliases: []
@@ -24,7 +24,7 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli
   delete:
     aliases: []
@@ -37,5 +37,5 @@ commands:
         type: int
     options: []
     parity:
-      status: scaffolded
+      status: implemented
       source: official-cli

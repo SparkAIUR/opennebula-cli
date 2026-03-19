@@ -25,3 +25,19 @@ def run_assh(*args: str) -> subprocess.CompletedProcess[str]:
         check=True,
         text=True,
     )
+
+
+def probe_assh_environment() -> dict[str, object]:
+    """Describe whether local read-only assh helpers can be used."""
+
+    return {
+        "available": has_assh_checkout(),
+        "repo": str(ASSH_REPO),
+        "uv": shutil.which("uv"),
+    }
+
+
+def run_readonly_probe(target: str) -> subprocess.CompletedProcess[str]:
+    """Run a read-only status probe through the sibling assh checkout."""
+
+    return run_assh("status", "--target", target)

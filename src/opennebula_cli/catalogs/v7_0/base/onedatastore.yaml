@@ -1,11 +1,11 @@
-family: template
-script: onetemplate
+family: datastore
+script: onedatastore
 version: "7.0"
 commands:
   list:
     aliases: []
     handler: rpc
-    backend_method: one.templatepool.info
+    backend_method: one.datastorepool.info
     supports_wait: false
     outputs: [table, json, yaml, xml, csv, raw]
     args: []
@@ -13,44 +13,41 @@ commands:
     parity:
       status: implemented
       source: official-cli
+      notes: Read-only Wave 2 list support.
   show:
     aliases: []
     handler: rpc
-    backend_method: one.template.info
+    backend_method: one.datastore.info
     supports_wait: false
     outputs: [table, json, yaml, xml, raw]
     args:
-      - name: template_id
+      - name: datastore_id
         type: int
     options: []
     parity:
       status: implemented
+      source: official-cli
+  create:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.allocate
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args: []
+    options: []
+    parity:
+      status: cataloged
       source: official-cli
   delete:
     aliases: []
     handler: rpc
-    backend_method: one.template.delete
+    backend_method: one.datastore.delete
     supports_wait: false
     outputs: [table, json, yaml, xml, raw]
     args:
-      - name: template_id
+      - name: datastore_id
         type: int
     options: []
     parity:
-      status: implemented
-      source: official-cli
-  instantiate:
-    aliases: []
-    handler: rpc
-    backend_method: one.template.instantiate
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
-    args:
-      - name: template_id
-        type: int
-    options:
-      - name: name
-        type: str
-    parity:
-      status: implemented
+      status: cataloged
       source: official-cli
