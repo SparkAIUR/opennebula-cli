@@ -1,9 +1,11 @@
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def run_compat(module: str, binary: str) -> subprocess.CompletedProcess[str]:
@@ -55,4 +57,5 @@ def test_compat_entrypoint_accepts_leading_global_output_option() -> None:
         text=True,
     )
     assert result.returncode == 0
-    assert "onevnet --output json list" in result.stdout
+    output = ANSI_ESCAPE_PATTERN.sub("", result.stdout)
+    assert "onevnet --output json list" in output
