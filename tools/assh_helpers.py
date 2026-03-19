@@ -27,6 +27,14 @@ def run_assh(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def ensure_assh_target(
+    alias: str, endpoint: str, *, scope: str = "repo"
+) -> subprocess.CompletedProcess[str]:
+    """Upsert a reusable remote target alias in the sibling assh repo."""
+
+    return run_assh("target", "add", alias, endpoint, "--scope", scope)
+
+
 def probe_assh_environment() -> dict[str, object]:
     """Describe whether local read-only assh helpers can be used."""
 
@@ -40,4 +48,4 @@ def probe_assh_environment() -> dict[str, object]:
 def run_readonly_probe(target: str) -> subprocess.CompletedProcess[str]:
     """Run a read-only status probe through the sibling assh checkout."""
 
-    return run_assh("status", "--target", target)
+    return run_assh("run", "uname -a && id && pwd", "--target", target)

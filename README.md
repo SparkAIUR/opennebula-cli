@@ -111,6 +111,16 @@ The capture path:
 - redacts endpoints, hostnames, IPs, MACs, and secret-like fields
 - writes private artifacts under `refs/tasks/live-capture/`
 
+## VM E2E bootstrap
+
+For disposable VM validation targets, the repo now includes an `assh`-backed probe/bootstrap path:
+
+```bash
+bash tools/e2e_run_live.sh
+```
+
+This stages [e2e_bootstrap_opennebula.sh](tools/e2e_bootstrap_opennebula.sh) onto the remote host, runs it through the sibling `assh` checkout, and fetches probe artifacts into `refs/tasks/e2e/`.
+
 ## SDK
 
 ```python

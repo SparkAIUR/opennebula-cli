@@ -37,3 +37,18 @@ uv run python tools/import_live_capture.py import --input /tmp/opennebula-captur
 ```
 
 The `contract` and `golden` suites skip cleanly when private artifacts are not present under `refs/tasks/live-capture/`.
+
+## VM probe workflow
+
+For remote VM validation targets, use the repo-backed `assh` harness:
+
+```bash
+bash tools/e2e_run_live.sh
+```
+
+It will:
+
+- register the target alias in the sibling `assh` checkout
+- push [e2e_bootstrap_opennebula.sh](/Volumes/S0/github/_sparkai/opennebula-cli/tools/e2e_bootstrap_opennebula.sh) to the VM
+- run the bootstrap script in `probe` mode by default
+- fetch artifacts into `refs/tasks/e2e/<timestamp>/`
