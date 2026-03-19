@@ -1,36 +1,51 @@
 # opennebula-cli
 
-`opennebula-cli` is a modern Python CLI and SDK for OpenNebula `7.0.x`.
+`opennebula-cli` is a modern OpenNebula CLI and SDK aimed at operators and automation systems.
 
-It provides:
+Use it when you want:
 
-- canonical commands such as `one vm list`
-- compatibility shims such as `onevm list`
-- a typed SDK under `opennebula_cli.sdk`
-- deterministic machine-readable output modes
-- a plugin-ready architecture for future OneFlow and ecosystem integrations
+- a stable command tree for shell scripts and CI/CD
+- compatibility wrappers for official `one*` workflows
+- deterministic JSON, YAML, CSV, XML, or raw output
+- typed Python access without wrapping the CLI in subprocesses
+
+## Current release
+
+- package version: `7.0.0`
+- compatibility target: OpenNebula `7.0.x`
+- PyPI package: `opennebula-cli`
+- import package: `opennebula_cli`
+
+## What is implemented
+
+Wave 1:
+
+- `vm`: `list`, `show`, `poweroff`
+- `host`: `list`, `show`, `flush`
+- `image`: `list`, `show`, `delete`
+- `template`: `list`, `show`, `delete`, `instantiate`
+
+Wave 2 read-only:
+
+- `vnet`: `list`, `show`
+- `datastore`: `list`, `show`
+- `cluster`: `list`, `show`
+
+## Validation status
+
+`7.0.0` was validated on a disposable OpenNebula CE `7.0.x` environment running on Ubuntu `24.04` with a localhost `lxc` host.
+
+Live-validated for this release:
+
+- read-only `list` and `show` paths across Wave 1 and Wave 2
+- disposable mutation validation for:
+  - `template instantiate`
+  - `vm poweroff --wait`
 
 ## Design stance
 
-- Compatibility comes first.
-- Modernization must stay additive.
-- The SDK is first-class, not a subprocess wrapper.
-- Human output can improve, but machine output must stay stable.
-
-## Current milestone
-
-The current tracked milestone is `Foundation + Wave 1` plus a `Wave 2 read-only scaffold`:
-
-- packaging, CI, and developer workflow
-- config/auth/runtime state
-- PyONE-backed transport and raw XML-RPC fallback
-- renderers and waiters
-- `vm`, `host`, `image`, and `template` command families
-- `vnet`, `datastore`, and `cluster` read-only command families
-- private live-readonly capture/import tooling for sanitized field observation
-
-## Package names
-
-- Repository: `SparkAIUR/opennebula-cli`
-- PyPI: `opennebula-cli`
-- Import package: `opennebula_cli`
+- Compatibility first
+- CLI-first operator experience
+- Machine output is a contract surface
+- SDK and CLI share the same typed service layer
+- Private maintainer tooling stays in `refs/*`, public onboarding stays in `docs/*`

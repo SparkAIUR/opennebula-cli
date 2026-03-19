@@ -1,27 +1,42 @@
 # Architecture
 
-The implementation is organized as a layered CLI and SDK:
+The implementation is organized as a layered CLI and SDK so operator workflows, automation flows, and Python integrations all pass through the same typed core.
+
+## Layers
 
 1. `cli/`
-   Typer command tree and compatibility shims.
-2. `auth/` and `config/`
-   Profile loading, env resolution, auth parsing, and redaction.
-3. `transports/`
-   PyONE-backed XML-RPC transport plus raw XML-RPC fallback.
-4. `services/`
-   Reusable typed operations for resources.
-5. `sdk/`
-   Public client, exceptions, and normalized models.
-6. `renderers/`
-   Human and machine output layers.
-7. `waiters/`
-   Polling support for long-running actions.
-8. `registry/` and `catalogs/`
-   Parity metadata and command inventory.
-9. `plugins/`
-   Future extension boundary.
+   Typer command tree, root option handling, help examples, and user-facing error mapping.
+2. `compat/`
+   Official-style wrappers such as `onevm`, `oneimage`, and `onevnet`.
+3. `auth/` and `config/`
+   Profile loading, auth resolution, env precedence, and runtime configuration.
+4. `transports/`
+   PyONE-backed XML-RPC transport with raw XML-RPC fallback.
+5. `services/`
+   Reusable typed operations consumed by both the CLI and the SDK.
+6. `sdk/`
+   Public `OneClient`, exceptions, and normalized models.
+7. `renderers/`
+   Human-readable and machine-readable output handling.
+8. `waiters/`
+   Polling-based lifecycle waiting for long-running operations.
+9. `registry/` and `catalogs/`
+   Versioned command metadata and parity tracking.
+10. `plugins/`
+    Future extension boundary.
+11. `dev/`
+    Local maintainer tooling such as the private context store and live capture support.
 
-## Current resource coverage
+## Design rules
+
+- keep CLI handlers thin
+- normalize backend payloads before they reach users
+- keep machine output deterministic
+- implement reusable logic in services first
+- track parity explicitly in catalogs
+- keep read-only live observation tooling aggressively redacted
+
+## Current coverage
 
 - `vm`
 - `host`
@@ -31,10 +46,11 @@ The implementation is organized as a layered CLI and SDK:
 - `datastore` (read-only)
 - `cluster` (read-only)
 
-## Design rules
+## Why this matters for DevOps users
 
-- Keep CLI handlers thin.
-- Normalize backend payloads before they reach users.
-- Keep machine output deterministic.
-- Track parity explicitly in YAML catalogs.
-- Keep live observation tooling read-only and aggressively redacted.
+This structure is intentional:
+
+- shell users get a stable CLI contract
+- pipeline users get deterministic structured output
+- Python users get typed access to the same operations
+- maintainers only have one behavior path to validate live

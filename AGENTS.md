@@ -5,64 +5,114 @@
 - Repo: `https://github.com/SparkAIUR/opennebula-cli`
 - PyPI package: `opennebula-cli`
 - Import package: `opennebula_cli`
-- Target OpenNebula line: `7.0.x`
-- Current bootstrap package version: `0.1.0`
+- Current public release: `7.0.0`
+- Compatibility target for this release: OpenNebula `7.0.x`
 
 ## Mission
 
-Build a modern Python CLI and SDK that reaches practical parity with the official OpenNebula CLI while remaining easy to package, test, extend, and embed.
+Ship a CLI-first, automation-friendly OpenNebula toolkit that keeps official workflows recognizable while making scripting, packaging, testing, and Python integration substantially easier.
+
+The CLI is the primary user surface. The SDK exists so the CLI and external Python automation share the same typed service layer instead of shelling out to subprocesses.
 
 ## Primary architecture
 
 The repo is organized into these layers:
 
 1. `cli/`
-   Canonical `one <resource> <verb>` Typer application and Wave 1 compatibility shims.
-2. `config/` and `auth/`
-   Resolution of profiles, environment variables, auth files, and CLI overrides.
-3. `transports/`
-   PyONE-first XML-RPC transport plus raw XML-RPC fallback.
-4. `services/`
-   Reusable typed operations consumed by both CLI and SDK.
-5. `sdk/`
+   Typer command tree, error handling, state construction, and help/example formatting.
+2. `compat/`
+   Official-style wrappers such as `onevm` and `onevnet`.
+3. `auth/` and `config/`
+   Auth resolution, profile loading, env precedence, and runtime configuration.
+4. `transports/`
+   PyONE-first XML-RPC transport with raw XML-RPC fallback.
+5. `services/`
+   Reusable typed OpenNebula operations shared by CLI and SDK.
+6. `sdk/`
    Public `OneClient`, exceptions, and normalized models.
-6. `renderers/`
+7. `renderers/`
    Human and machine output handling.
-7. `waiters/`
-   Polling-based wait support for long-running operations.
-8. `registry/` and `catalogs/`
-   Versioned command metadata and parity tracking.
-9. `plugins/`
-   Plugin protocol and future extension points.
-10. `dev/`
-    Local maintainer tooling such as the private context store backend.
+8. `waiters/`
+   Polling support for lifecycle operations.
+9. `registry/` and `catalogs/`
+   Versioned command metadata and parity inventory.
+10. `plugins/`
+    Future extension boundary.
+11. `dev/`
+    Private maintainer tooling such as the context store and live capture support.
 
-## Current milestone
+## CLI contract
 
-The first milestone is `Foundation + Wave 1`:
+Canonical syntax:
 
-- packaging and CI
-- runtime config/auth
-- transport and exception normalization
-- SDK base
-- renderers and waiters
-- `vm`, `host`, `image`, and `template` families
+```bash
+one [GLOBAL OPTIONS] <resource> <verb> [RESOURCE ARGS] [RESOURCE OPTIONS]
+```
 
-The current extension milestone adds:
+Compatibility syntax:
 
-- standardized help examples for every implemented subcommand
-- Wave 2 read-only families: `vnet`, `datastore`, `cluster`
-- private live-readonly capture and import tooling
+```bash
+one<resource> [GLOBAL OPTIONS] <verb> [RESOURCE ARGS] [RESOURCE OPTIONS]
+```
 
-## Canonical rules
+Important rule:
+
+- global options belong before the resource verb on `one`
+- global options belong before the verb on compatibility wrappers
+
+Examples:
+
+```bash
+one --output json vm list
+one --profile prod template show 24
+onevm --output json list
+onecluster --profile prod show 0
+```
+
+## Current implemented scope
+
+Wave 1:
+
+- `vm`: `list`, `show`, `poweroff`
+- `host`: `list`, `show`, `flush`
+- `image`: `list`, `show`, `delete`
+- `template`: `list`, `show`, `delete`, `instantiate`
+
+Wave 2 read-only:
+
+- `vnet`: `list`, `show`
+- `datastore`: `list`, `show`
+- `cluster`: `list`, `show`
+
+## Validation state for `7.0.0`
+
+This release was validated against a disposable OpenNebula CE `7.0.x` environment on Ubuntu `24.04` with a localhost `lxc` host.
+
+Live-validated:
+
+- read-only `list` and `show` for `vm`, `host`, `image`, `template`, `vnet`, `datastore`, and `cluster`
+- disposable mutation flows for:
+  - `template instantiate`
+  - `vm poweroff --wait`
+
+Still implemented but not a release blocker for live mutation validation:
+
+- `host flush`
+- `image delete`
+- `template delete`
+
+## Canonical repo rules
 
 - Prefer compatibility over novelty.
-- Keep CLI behavior thin; put reusable logic in services.
-- Keep transport-specific details out of the public SDK.
+- Keep CLI handlers thin; reusable logic belongs in services.
+- Keep transport-specific details out of public SDK types.
 - Do not require `refs/*` for public onboarding.
-- Treat machine-readable output as deterministic contract surface.
+- Treat machine-readable output as contract surface.
+- Keep live capture tooling read-only and aggressively redacted.
+- Keep disposable fixture namespaced under `e2e-*`.
+- Do not mutate or clean up non-`e2e-*` resources in the remote E2E workflow.
 - Release tags must match `project.version` exactly.
-- `0.1.0` is a bootstrap release; later public versions will mirror OpenNebula compatibility.
+- Public package versions mirror OpenNebula compatibility targets.
 
 ## Docs map
 
@@ -83,27 +133,27 @@ Private local docs:
 - `refs/RULES.md`
 - `refs/KB.md`
 - `refs/docs/ctx/context.db`
+- `refs/tasks/e2e/`
 - `refs/tasks/live-capture/`
 
 ## Worker responsibilities
 
-When parallelizing work, keep write ownership disjoint:
+When parallelizing work, keep ownership disjoint:
 
 - Docs worker:
   - `docs/**`
   - `README.md`
   - `AGENTS.md`
-  - `LICENSE`
 - Core runtime worker:
   - `src/opennebula_cli/{auth,config,transports,sdk,services,renderers,waiters}/**`
 - CLI/parity worker:
   - `src/opennebula_cli/{cli,compat,registry,catalogs}/**`
-- Quality worker:
+- Quality and tooling worker:
   - `tests/**`
   - `.github/workflows/**`
   - `tools/**`
 
-Workers must not revert unrelated changes and must adapt to concurrent edits.
+Workers must adapt to concurrent edits and must not revert unrelated changes.
 
 ## Local maintainer workflow
 
@@ -112,28 +162,31 @@ uv sync --group dev
 uv run one --help
 uv run pytest
 uv run python tools/check_catalog_schema.py
-uv run python tools/check_release_version.py --tag v0.1.0
+uv run python tools/check_release_version.py --tag v7.0.0
 uv build
 ```
 
-Read-only live observation workflow:
+Read-only live observation:
 
 ```bash
 tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
 uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
 ```
 
-Private context store workflow:
+Remote live validation:
 
 ```bash
-uv run python tools/context_store.py init
-uv run python tools/context_store.py add decision architecture "Initial transport choice" "Use PyONE first" "Raw XML-RPC remains as a fallback."
-uv run python tools/context_store.py export-md
+ONE_E2E_TARGET_ALIAS=opennebula-e2e \
+ONE_E2E_TARGET_ENDPOINT=root@vm.example.com \
+ONE_E2E_REMOTE_ROOT=/mnt/opennebula-cli-e2e \
+ONE_E2E_MODE=manual-frontend \
+ONE_E2E_VALIDATE_LOCAL=1 \
+bash tools/e2e_run_live.sh
 ```
 
 ## Near-term roadmap
 
-1. Publish the bootstrap `0.1.0` package release.
-2. Run VM-based OpenNebula `7.0.x` live validation.
-3. Bump the package to `7.0.0` and switch to compatibility-mirrored releases.
-4. Expand parity into identity, policy, and plugin flows.
+1. Maintain `7.0.x` compatibility quality and improve remaining live mutation coverage.
+2. Expand Wave 2 beyond read-only commands.
+3. Add Wave 3 and Wave 4 command families.
+4. Introduce the OneFlow plugin boundary and first-party plugin support.

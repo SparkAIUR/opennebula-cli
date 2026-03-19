@@ -1,6 +1,6 @@
 # Parity Roadmap
 
-The command parity program is organized in waves.
+The command parity program is organized in waves and tracked in YAML catalogs under `src/opennebula_cli/catalogs/v7_0/base/`.
 
 ## Wave 1
 
@@ -9,10 +9,18 @@ The command parity program is organized in waves.
 - `oneimage`
 - `onetemplate`
 
-Current status:
+Implemented commands:
 
-- `list`, `show`, and the currently exposed mutating commands are implemented
-- read-only live verification is available for `list` and `show`
+- `vm`: `list`, `show`, `poweroff`
+- `host`: `list`, `show`, `flush`
+- `image`: `list`, `show`, `delete`
+- `template`: `list`, `show`, `delete`, `instantiate`
+
+Validation status:
+
+- read-only `list` and `show` are live-validated
+- `template instantiate` and `vm poweroff` are live-validated on disposable fixtures
+- `host flush`, `image delete`, and `template delete` remain implemented but not yet required as live release blockers
 
 ## Wave 2
 
@@ -23,6 +31,7 @@ Current status:
 Current status:
 
 - `list` and `show` are implemented
+- read-only `list` and `show` are live-validated
 - mutating Wave 2 verbs remain cataloged, not implemented
 
 ## Wave 3
@@ -33,6 +42,10 @@ Current status:
 - `onezone`
 - `onevdc`
 
+Status:
+
+- not yet implemented
+
 ## Wave 4
 
 - `onesecgroup`
@@ -40,12 +53,22 @@ Current status:
 - `onemarket`
 - `onemarketapp`
 
+Status:
+
+- not yet implemented
+
 ## Plugin wave
+
+Planned extensions:
 
 - OneFlow plugin boundary
 - plugin diagnostics
 - entry-point based registration
 
-## Tracking
+## Release policy
 
-Each family is represented in YAML catalogs under `src/opennebula_cli/catalogs/v7_0/base/`.
+Public package versions mirror the targeted OpenNebula compatibility line.
+
+- current release: `7.0.0`
+- compatibility target: OpenNebula `7.0.x`
+- historical bootstrap release: `0.1.0`

@@ -1,43 +1,83 @@
 # Command Model
 
-The preferred command grammar is:
+## Canonical syntax
+
+The preferred CLI grammar is:
 
 ```bash
-one <resource> <verb> [args] [options]
+one [GLOBAL OPTIONS] <resource> <verb> [RESOURCE ARGS] [RESOURCE OPTIONS]
 ```
 
 Examples:
 
 ```bash
 one vm list
-one vm show 42
-one image delete 13
-one vnet list --output json
+one --output json vm list
+one --profile prod template show 24
+one --no-pager host flush 0
 ```
 
-Compatibility shims remain available for the official OpenNebula-style workflow:
+## Compatibility syntax
+
+Compatibility wrappers keep the official family names available:
+
+```bash
+one<resource> [GLOBAL OPTIONS] <verb> [RESOURCE ARGS] [RESOURCE OPTIONS]
+```
+
+Examples:
 
 ```bash
 onevm list
-onehost flush 3
-oneimage show 13
-onecluster list
+onevm --output json list
+oneimage --profile prod show 13
+onecluster --output yaml show 0
 ```
 
-## Subcommand help examples
+## Global options vs resource options
 
-Every implemented subcommand includes 1-2 examples directly in `--help`.
+Global options are handled by the root application:
+
+- `--profile`
+- `--endpoint`
+- `--auth`
+- `--user`
+- `--password`
+- `--output`
+- `--no-pager`
+- `--timeout`
+- `--no-verify`
+- `--cert-dir`
+- `--verbose`
+- `--debug`
+
+They must appear before the resource verb.
+
+Resource options stay on the subcommand itself:
+
+```bash
+one vm poweroff 42 --wait --timeout 600 --no-progress
+one template instantiate 24 --name build-vm
+```
+
+## Help examples
+
+Every implemented subcommand includes concrete examples in `--help`.
 
 Example:
 
 ```text
 $ one vm list --help
 Examples:
-  one vm list --output json
-  onevm list --output json
+  one --output json vm list
+  onevm --output json list
 ```
 
+Mutation commands also include a caution line in their help output.
+
 ## Output modes
+
+Supported output modes:
 
 - `table`
 - `json`
@@ -46,13 +86,25 @@ Examples:
 - `csv`
 - `raw`
 
+Guidance:
+
+- use `table` for interactive operator sessions
+- use `json`, `yaml`, `csv`, or `raw` for automation
+- keep `--output` at the root position
+
 ## Wait behavior
 
-Wave 1 begins with waiter support on VM lifecycle commands such as `poweroff`.
+The current waiter-enabled lifecycle path is `vm poweroff`.
 
-## Current Wave 2 scope
+Example:
 
-Wave 2 currently exposes read-only `list` and `show` for:
+```bash
+one --output json vm poweroff 42 --wait --timeout 600 --no-progress
+```
+
+## Current read-only Wave 2 scope
+
+Wave 2 currently provides `list` and `show` for:
 
 - `vnet`
 - `datastore`

@@ -5,9 +5,23 @@
 - Python `3.11+`
 - `uv`
 - network access to an OpenNebula `7.0.x` endpoint
-- credentials in an auth file or literal `user:secret` format
+- credentials available through an auth file, profile, or explicit CLI/env auth
 
-## Local development setup
+## Install
+
+Install the released CLI:
+
+```bash
+uv tool install opennebula-cli==7.0.0
+```
+
+Or run directly without a persistent install:
+
+```bash
+uvx --from opennebula-cli==7.0.0 one --help
+```
+
+For repo development:
 
 ```bash
 uv sync --group dev
@@ -16,31 +30,61 @@ uv run onevm --help
 uv run onevnet --help
 ```
 
-## Basic environment setup
+## Recommended auth setup
+
+Use an auth file instead of a raw secret in shell history:
 
 ```bash
-export ONE_XMLRPC=https://opennebula.example.com/RPC2
-export ONE_AUTH=$HOME/.one/one_auth
+mkdir -p "$HOME/.one"
+chmod 700 "$HOME/.one"
+printf 'oneadmin:super-secret-token\n' > "$HOME/.one/one_auth"
+chmod 600 "$HOME/.one/one_auth"
 ```
 
-Auth resolution supports:
-
-- file path values
-- `file:/path/to/authfile`
-- `literal:user:secret`
-- `--user` with secure password prompt
-
-## CLI examples
+Then point the CLI at your endpoint:
 
 ```bash
-uv run one vm list
-uv run one vm show 42
-uv run one host list
-uv run oneimage list --output json
-uv run one cluster list --output json
+export ONE_XMLRPC="https://opennebula.example.com/RPC2"
+export ONE_AUTH="$HOME/.one/one_auth"
 ```
 
-## SDK example
+## First commands
+
+Canonical commands:
+
+```bash
+one vm list
+one host show 0
+one --output json image list
+one --output yaml cluster show 0
+```
+
+Compatibility shims:
+
+```bash
+onevm list
+onehost show 0
+oneimage --output json list
+onecluster --output yaml show 0
+```
+
+## Important command syntax rule
+
+Global options must appear before the resource verb:
+
+```bash
+one --output json vm list
+onevm --output json list
+```
+
+These are not valid:
+
+```bash
+one vm list --output json
+onevm list --output json
+```
+
+## SDK quickstart
 
 ```python
 from opennebula_cli.sdk import OneClient
@@ -52,15 +96,11 @@ print(vm.name, vm.state)
 
 ## Safe live observation
 
-When credentials must remain local, use the read-only capture scripts and share only the redacted JSONL output:
+When credentials cannot be shared, generate a sanitized read-only capture:
 
 ```bash
 tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
 uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
 ```
 
-The capture tool:
-
-- only runs allowlisted `--help`, `list`, and `show` commands
-- auto-discovers a `show` target from the first observed `list` result
-- skips `show` cleanly when no IDs are available
+The capture tool only runs allowlisted `--help`, `list`, and `show` commands and redacts sensitive infrastructure details before you share the output.

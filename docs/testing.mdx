@@ -1,11 +1,6 @@
 # Testing
 
-The repo uses layered validation:
-
-- unit tests for isolated logic
-- snapshot tests for CLI and output drift
-- golden tests for imported private live summaries when available
-- contract tests against private read-only capture artifacts when available
+The repo uses layered validation so CLI behavior, service contracts, and live compatibility are exercised separately.
 
 ## Local checks
 
@@ -14,41 +9,82 @@ uv run ruff check .
 uv run mypy src tests tools
 uv run pytest
 uv run python tools/check_catalog_schema.py
+uv run python tools/check_release_version.py --tag v7.0.0
+uv build
 ```
 
-## Current focus
+## Test layers
 
-The bootstrap phase emphasizes:
+- unit tests for models, service contracts, config/auth resolution, and helpers
+- snapshot tests for CLI help behavior
+- integration tests for compatibility entrypoints and wiring
+- contract and golden tests for imported private live observations
+- E2E tests for live OpenNebula validation when environment variables are present
 
-- auth parsing
-- config resolution
-- context store behavior
-- renderer determinism
-- catalog loading
-- CLI help coverage
-- Wave 2 read-only service coverage
-- live capture redaction and importer coverage
+## Read-only live capture
 
-## Live capture workflow
+Capture sanitized live observations without sharing credentials:
 
 ```bash
 tools/capture_live_readonly.sh --write-artifact > /tmp/opennebula-capture.jsonl
 uv run python tools/import_live_capture.py import --input /tmp/opennebula-capture.jsonl
 ```
 
-The `contract` and `golden` suites skip cleanly when private artifacts are not present under `refs/tasks/live-capture/`.
+That workflow:
 
-## VM probe workflow
+- executes only allowlisted `--help`, `list`, and `show` commands
+- redacts endpoints, hostnames, IPs, MACs, and secret-like fields
+- stores private artifacts under `refs/tasks/live-capture/`
+- updates the private context store and KB export locally
 
-For remote VM validation targets, use the repo-backed `assh` harness:
+## Remote OpenNebula E2E workflow
+
+For disposable validation VMs, use the `assh`-backed harness:
 
 ```bash
+ONE_E2E_TARGET_ALIAS=opennebula-e2e \
+ONE_E2E_TARGET_ENDPOINT=root@vm.example.com \
+ONE_E2E_REMOTE_ROOT=/mnt/opennebula-cli-e2e \
+ONE_E2E_MODE=manual-frontend \
+ONE_E2E_VALIDATE_LOCAL=1 \
 bash tools/e2e_run_live.sh
 ```
 
-It will:
+The harness:
 
-- register the target alias in the sibling `assh` checkout
-- push [e2e_bootstrap_opennebula.sh](/Volumes/S0/github/_sparkai/opennebula-cli/tools/e2e_bootstrap_opennebula.sh) to the VM
-- run the bootstrap script in `probe` mode by default
-- fetch artifacts into `refs/tasks/e2e/<timestamp>/`
+1. bootstraps OpenNebula CE `7.0.x` on the remote Ubuntu `24.04` host
+2. seeds disposable `e2e-*` fixtures through official OpenNebula CLI tools
+3. tunnels the XML-RPC endpoint back to the local checkout
+4. runs live read-only and mutation E2E from the current repo state
+5. imports sanitized read-only capture data
+6. cleans up disposable `e2e-vm-*` resources
+
+## Remote fixture scripts
+
+The harness uses:
+
+- `tools/e2e_bootstrap_opennebula.sh`
+- `tools/e2e_seed_fixtures.sh`
+- `tools/e2e_cleanup_fixtures.sh`
+- `tools/e2e_run_live.sh`
+
+Fixture rules:
+
+- disposable resources use the `e2e-*` namespace
+- cleanup only removes `e2e-vm-*` VMs unless explicitly told to reset base fixtures
+- base fixtures are designed to be idempotent across repeated runs
+
+## Release validation for `7.0.0`
+
+`7.0.0` was validated against:
+
+- Ubuntu `24.04`
+- OpenNebula CE `7.0.x`
+- single-node frontend
+- localhost `lxc` host
+
+Live release coverage included:
+
+- read-only `list` and `show` for Wave 1 and Wave 2 families
+- disposable `template instantiate`
+- disposable `vm poweroff --wait`

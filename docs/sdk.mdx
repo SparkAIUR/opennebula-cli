@@ -24,18 +24,44 @@ OneClient.from_config(config)
 - `client.datastore`
 - `client.cluster`
 
-## Example
+## CLI and SDK relationship
+
+The CLI is a thin layer over the same service objects exposed by the SDK.
+
+That means:
+
+- CLI behavior should be implemented in services first
+- SDK and CLI share normalized models
+- transport details stay below the public service boundary
+
+## Operator automation example
 
 ```python
 from opennebula_cli.sdk import OneClient
 
 client = OneClient.from_env()
 
-for network in client.vnet.list():
-    print(network.id, network.name, network.type)
+running = [
+    vm
+    for vm in client.vm.list()
+    if vm.state.upper() == "ACTIVE"
+]
+
+for vm in running:
+    print(vm.id, vm.name, vm.host)
 ```
 
-## Current public exceptions
+## Profile-based example
+
+```python
+from opennebula_cli.sdk import OneClient
+
+client = OneClient.from_profile("prod")
+template = client.template.show(24)
+print(template.id, template.name)
+```
+
+## Public exceptions
 
 - `OpenNebulaError`
 - `AuthError`
@@ -45,6 +71,17 @@ for network in client.vnet.list():
 - `ApiError`
 - `PluginError`
 
-## Rule for contributors
+## Current model coverage
 
-If a CLI feature requires new logic, implement it through the service layer so the SDK can reuse it.
+Public normalized models currently include:
+
+- `Vm`
+- `Host`
+- `Image`
+- `Template`
+- `Vnet`
+- `Datastore`
+- `Cluster`
+- `Ack`
+- `WaitResult`
+- `WaitSpec`

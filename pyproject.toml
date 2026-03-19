@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "opennebula-cli"
-version = "0.1.0"
+version = "7.0.0"
 description = "Modern Python CLI and SDK for OpenNebula"
 readme = "README.md"
 requires-python = ">=3.11"

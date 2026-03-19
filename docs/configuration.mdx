@@ -3,11 +3,13 @@
 Runtime configuration follows this precedence:
 
 1. CLI flags
-2. selected profile values
+2. selected profile
 3. environment variables
 4. defaults
 
-## Supported environment variables
+## Environment variables
+
+Supported environment variables:
 
 - `ONE_XMLRPC`
 - `ONE_AUTH`
@@ -20,7 +22,12 @@ Runtime configuration follows this precedence:
 
 ## Profiles
 
-Profiles are loaded from the platform config directory via `platformdirs`.
+Profiles are loaded from the platform config directory for `opennebula-cli`.
+
+Typical locations:
+
+- Linux: `~/.config/opennebula-cli/config.toml`
+- macOS: `~/Library/Application Support/opennebula-cli/config.toml`
 
 Example:
 
@@ -28,20 +35,64 @@ Example:
 default_profile = "prod"
 
 [profiles.prod]
-endpoint = "https://one.example.com/RPC2"
-auth = "file:/home/alice/.one/prod_auth"
+endpoint = "https://opennebula.example.com/RPC2"
+auth = "file:/home/ops/.one/prod_auth"
 output = "table"
 timeout = 60
 verify_ssl = true
+```
+
+Use a profile:
+
+```bash
+one --profile prod vm list
+onevm --profile prod list
 ```
 
 ## Auth resolution
 
 Supported auth forms:
 
-- path to auth file
-- `file:/path/to/file`
-- `literal:user:secret`
-- `--user` and prompted password/token
+- direct path: `/path/to/one_auth`
+- explicit file syntax: `file:/path/to/one_auth`
+- explicit literal syntax: `literal:user:secret`
+- `--user` with a secure password prompt
 
-The default compatibility fallback is `~/.one/one_auth`.
+Default fallback:
+
+- `~/.one/one_auth`
+
+Recommended for automation:
+
+- keep secrets in an auth file
+- export `ONE_AUTH` to that file path
+- avoid inline secrets in shell history and CI logs
+
+## TLS and certificates
+
+By default TLS verification stays enabled.
+
+Relevant controls:
+
+- `--no-verify`
+- `ONE_DISABLE_SSL_VERIFY`
+- `--cert-dir`
+- `ONE_CERT_DIR`
+
+For production automation, prefer a trusted CA bundle over disabling verification.
+
+## Output and paging
+
+Relevant controls:
+
+- `--output`
+- `--no-pager`
+- `ONE_PAGER`
+- `ONE_LISTCONF`
+- `ONE_POOL_PAGE_SIZE`
+
+For scripts and CI, prefer:
+
+```bash
+one --output json --no-pager vm list
+```
