@@ -19,6 +19,19 @@ uv build
 - do not commit `refs/*`
 - keep live capture tooling read-only and add redaction tests for changes
 
+## Release policy
+
+- the current bootstrap package release is `0.1.0`
+- release tags must equal `project.version`
+- GitHub Actions publishes to PyPI only when the pushed tag matches the package version exactly
+- after live validation against OpenNebula `7.0.x`, package versions will switch to OpenNebula-mirrored releases beginning at `7.0.0`
+
+Preflight a release tag locally with:
+
+```bash
+uv run python tools/check_release_version.py --tag v0.1.0
+```
+
 ## Private maintainer workspace
 
 `refs/` is reserved for local-only working notes, internal task tracking, and the contextual knowledge store.

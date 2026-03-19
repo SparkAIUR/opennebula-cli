@@ -59,6 +59,21 @@ uv run onevm --help
 uv build
 ```
 
+## Release policy
+
+The current public bootstrap release is `0.1.0`.
+
+- `v0.1.0` is a one-time bootstrap package release.
+- later, after live validation against OpenNebula `7.0.x`, package versions will switch to OpenNebula-mirrored releases starting at `7.0.0`.
+- the release workflow publishes only when the pushed git tag matches `project.version` exactly.
+
+Examples:
+
+```bash
+uv run python tools/check_release_version.py --tag v0.1.0
+git tag -a v0.1.0 -m "Release v0.1.0"
+```
+
 ## Quick start
 
 ```bash
@@ -129,7 +144,7 @@ Public docs are tracked in [`docs/`](docs/). The main entrypoints are:
 
 ```bash
 uv run ruff check .
-uv run mypy src
+uv run mypy src tests tools
 uv run pytest
 uv run python tools/check_catalog_schema.py
 ```

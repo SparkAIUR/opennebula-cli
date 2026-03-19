@@ -6,6 +6,7 @@
 - PyPI package: `opennebula-cli`
 - Import package: `opennebula_cli`
 - Target OpenNebula line: `7.0.x`
+- Current bootstrap package version: `0.1.0`
 
 ## Mission
 
@@ -60,6 +61,8 @@ The current extension milestone adds:
 - Keep transport-specific details out of the public SDK.
 - Do not require `refs/*` for public onboarding.
 - Treat machine-readable output as deterministic contract surface.
+- Release tags must match `project.version` exactly.
+- `0.1.0` is a bootstrap release; later public versions will mirror OpenNebula compatibility.
 
 ## Docs map
 
@@ -109,6 +112,7 @@ uv sync --group dev
 uv run one --help
 uv run pytest
 uv run python tools/check_catalog_schema.py
+uv run python tools/check_release_version.py --tag v0.1.0
 uv build
 ```
 
@@ -129,7 +133,7 @@ uv run python tools/context_store.py export-md
 
 ## Near-term roadmap
 
-1. Harden Wave 1 behavior and tests.
-2. Expand Wave 2 beyond read-only parity into mutating workflows.
-3. Expand parity into identity and policy families.
-4. Add plugin diagnostics and first-party OneFlow boundary.
+1. Publish the bootstrap `0.1.0` package release.
+2. Run VM-based OpenNebula `7.0.x` live validation.
+3. Bump the package to `7.0.0` and switch to compatibility-mirrored releases.
+4. Expand parity into identity, policy, and plugin flows.

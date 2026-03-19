@@ -1,13 +1,45 @@
 name: Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "v*"
 
 jobs:
-  release-check:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Sync
+        run: uv sync --group dev
+
+      - name: Validate release tag
+        run: uv run python tools/check_release_version.py
+
+      - name: Test
+        run: uv run pytest
+
+      - name: Build
+        run: uv build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  publish:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -15,25 +47,13 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      
-      - name: "Set up Python"
-        uses: actions/setup-python@v6
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
         with:
-          python-version: "3.12"
-      
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-      
-      - name: Sync
-        run: uv sync --group dev
-      
-      - name: Test
-        run: uv run pytest
-      
-      - name: Build
-        run: uv build
-      
-      - name: Publish
-        run: uv publish
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
