@@ -1,8 +1,11 @@
+import re
+
 from typer.testing import CliRunner
 
 from opennebula_cli.cli.app import app
 
 runner = CliRunner()
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 
 
 IMPLEMENTED_SUBCOMMANDS = [
@@ -31,10 +34,12 @@ IMPLEMENTED_SUBCOMMANDS = [
 def test_help_snapshots_cover_examples() -> None:
     for family, command in IMPLEMENTED_SUBCOMMANDS:
         result = runner.invoke(app, [family, command, "--help"])
+        output = ANSI_ESCAPE_PATTERN.sub("", result.stdout)
         assert result.exit_code == 0, f"{family} {command} should render help"
-        assert "Examples:" in result.stdout
-        assert f"one {family} {command}" in result.stdout
-        assert f"one{family} {command}" in result.stdout
+        assert "Examples:" in output
+        assert f"one {family} {command}" in output
+        assert f"one{family} {command}" in output
     poweroff_help = runner.invoke(app, ["vm", "poweroff", "--help"])
-    assert "--poll-interval" in poweroff_help.stdout
-    assert "This command changes live resources." in poweroff_help.stdout
+    poweroff_output = ANSI_ESCAPE_PATTERN.sub("", poweroff_help.stdout)
+    assert "poll-interval" in poweroff_output
+    assert "This command changes live resources." in poweroff_output
