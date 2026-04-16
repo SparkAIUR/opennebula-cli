@@ -11,7 +11,7 @@ class BuiltinPlugin:
     def spec(self) -> PluginSpec:
         return PluginSpec(
             name="builtin",
-            commands=["vm", "host", "image", "template"],
+            commands=["vm", "host", "image", "template", "workflow"],
         )
 
     def register(self) -> dict[str, object]:

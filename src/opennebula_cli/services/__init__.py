@@ -7,6 +7,8 @@ from opennebula_cli.services.image import ImageService
 from opennebula_cli.services.template import TemplateService
 from opennebula_cli.services.vm import VmService
 from opennebula_cli.services.vnet import VnetService
+from opennebula_cli.services.workflow_template import WorkflowTemplateService
+from opennebula_cli.services.workflow_vm import WorkflowVmInitService
 
 __all__ = [
     "ClusterService",
@@ -16,4 +18,6 @@ __all__ = [
     "TemplateService",
     "VnetService",
     "VmService",
+    "WorkflowTemplateService",
+    "WorkflowVmInitService",
 ]

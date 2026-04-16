@@ -1,3 +1,12 @@
 """Resource command modules."""
 
-__all__ = ["host", "image", "template", "vm"]
+__all__ = [
+    "cluster",
+    "datastore",
+    "host",
+    "image",
+    "template",
+    "vm",
+    "vnet",
+    "workflow",
+]

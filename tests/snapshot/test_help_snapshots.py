@@ -9,36 +9,48 @@ ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 
 
 IMPLEMENTED_SUBCOMMANDS = [
-    ("vm", "list"),
-    ("vm", "show"),
-    ("vm", "poweroff"),
-    ("host", "list"),
-    ("host", "show"),
-    ("host", "flush"),
-    ("image", "list"),
-    ("image", "show"),
-    ("image", "delete"),
-    ("template", "list"),
-    ("template", "show"),
-    ("template", "delete"),
-    ("template", "instantiate"),
-    ("vnet", "list"),
-    ("vnet", "show"),
-    ("datastore", "list"),
-    ("datastore", "show"),
-    ("cluster", "list"),
-    ("cluster", "show"),
+    (("vm", "list"), True),
+    (("vm", "show"), True),
+    (("vm", "poweroff"), True),
+    (("host", "list"), True),
+    (("host", "show"), True),
+    (("host", "flush"), True),
+    (("image", "list"), True),
+    (("image", "show"), True),
+    (("image", "delete"), True),
+    (("template", "list"), True),
+    (("template", "show"), True),
+    (("template", "delete"), True),
+    (("template", "instantiate"), True),
+    (("vnet", "list"), True),
+    (("vnet", "show"), True),
+    (("datastore", "list"), True),
+    (("datastore", "show"), True),
+    (("cluster", "list"), True),
+    (("cluster", "show"), True),
+    (("workflow", "template", "init"), False),
+    (("workflow", "template", "render"), False),
+    (("workflow", "template", "import"), False),
+    (("workflow", "template", "apply"), False),
+    (("workflow", "vm", "init"), False),
+    (("workflow", "vm", "apply"), False),
 ]
 
 
 def test_help_snapshots_cover_examples() -> None:
-    for family, command in IMPLEMENTED_SUBCOMMANDS:
-        result = runner.invoke(app, [family, command, "--help"])
+    for command_parts, expect_compat in IMPLEMENTED_SUBCOMMANDS:
+        result = runner.invoke(app, [*command_parts, "--help"])
         output = ANSI_ESCAPE_PATTERN.sub("", result.stdout)
-        assert result.exit_code == 0, f"{family} {command} should render help"
+        command_label = " ".join(command_parts)
+        assert result.exit_code == 0, f"{command_label} should render help"
         assert "Examples:" in output
-        assert f"one {family} {command}" in output or "one --output" in output
-        assert f"one{family} {command}" in output or f"one{family} --output" in output
+        assert f"one {command_label}" in output or "one --output" in output
+        if expect_compat:
+            family = command_parts[0]
+            command = command_parts[1]
+            assert f"one{family} {command}" in output or f"one{family} --output" in output
+        else:
+            assert "oneworkflow " not in output
     poweroff_help = runner.invoke(app, ["vm", "poweroff", "--help"])
     poweroff_output = ANSI_ESCAPE_PATTERN.sub("", poweroff_help.stdout)
     assert "poll-interval" in poweroff_output

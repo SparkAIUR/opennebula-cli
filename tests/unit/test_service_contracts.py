@@ -62,6 +62,20 @@ def test_template_service_uses_full_instantiate_signature() -> None:
     ]
 
 
+def test_template_service_instantiate_accepts_override_template() -> None:
+    transport = StubTransport({"one.template.instantiate": 88})
+    service = TemplateService(transport)
+
+    result = service.instantiate(7, name="test-vm", template_body='CPU = "4"')
+
+    assert result.action == "instantiate"
+    assert result.resource == "vm"
+    assert result.id == 88
+    assert transport.calls == [
+        ("one.template.instantiate", (7, "test-vm", False, 'CPU = "4"', False))
+    ]
+
+
 def test_template_service_delete_keeps_images_by_default() -> None:
     transport = StubTransport({"one.template.delete": True})
     service = TemplateService(transport)
@@ -70,6 +84,18 @@ def test_template_service_delete_keeps_images_by_default() -> None:
 
     assert result.action == "delete"
     assert transport.calls == [("one.template.delete", (7, False))]
+
+
+def test_template_service_create_uses_allocate() -> None:
+    transport = StubTransport({"one.template.allocate": 17})
+    service = TemplateService(transport)
+
+    result = service.create('NAME = "created-template"')
+
+    assert result.action == "create"
+    assert result.resource == "template"
+    assert result.id == 17
+    assert transport.calls == [("one.template.allocate", ('NAME = "created-template"',))]
 
 
 def test_vm_poweroff_retries_pending_state() -> None:
