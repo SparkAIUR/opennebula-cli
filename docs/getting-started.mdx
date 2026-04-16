@@ -12,13 +12,13 @@
 Install the released CLI:
 
 ```bash
-uv tool install opennebula-cli==7.0.0
+uv tool install opennebula-cli==7.0.1
 ```
 
 Or run directly without a persistent install:
 
 ```bash
-uvx --from opennebula-cli==7.0.0 one --help
+uvx --from opennebula-cli==7.0.1 one --help
 ```
 
 For repo development:
@@ -67,6 +67,25 @@ onehost show 0
 oneimage --output json list
 onecluster --output yaml show 0
 ```
+
+## Workflow quickstart
+
+Template workflow:
+
+```bash
+one workflow template init ./openclaw-workflow
+one workflow template render ./openclaw-workflow/workflow.yaml --vars-file ./openclaw-workflow/vars.example.yaml
+```
+
+VM initialization workflow:
+
+```bash
+one workflow vm apply docs/examples/05-vm-init/bulk-init.yaml --wait-ready
+```
+
+For full schema, advanced cloud-init helpers, troubleshooting, and best practices:
+
+- [Workflow VM Templates](workflows-vm-templates)
 
 ## Important command syntax rule
 

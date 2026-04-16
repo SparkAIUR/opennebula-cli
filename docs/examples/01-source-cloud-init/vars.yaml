@@ -1,0 +1,22 @@
+# Required for import/apply and used for collision checks in OpenNebula.
+template_name: openclaw-user-template-a
+# Existing image name expected by your OpenNebula environment.
+image_name: Ubuntu 24.04
+
+# This override wins over defaults.cpu.
+cpu: 4
+
+bootstrap_env:
+  # Values written to /etc/openclaw.env and injected into CONTEXT.
+  OPENCLAW_USER_ID: user-123
+  OPENCLAW_INSTANCE_ID: claw-a
+  OPENCLAW_API_TOKEN: replace-me
+
+# Optional remote fetch example for cloud-init:
+# remote_script_url: https://raw.githubusercontent.com/your-org/your-repo/main/bootstrap/openclaw-remote.sh
+# remote_script_method: GET
+# remote_script_timeout: 10
+# remote_script_headers:
+#   Authorization: Bearer replace-me
+# remote_script_params:
+#   ref: main

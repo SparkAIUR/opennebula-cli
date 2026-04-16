@@ -1,0 +1,7 @@
+# Required import/apply template identifier.
+template_name: openclaw-minimal-template
+image_name: Ubuntu 24.04
+
+bootstrap_env:
+  # Optional CONTEXT keys still work even without cloud-init.
+  OPENCLAW_MODE: dry-run

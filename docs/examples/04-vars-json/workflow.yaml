@@ -1,0 +1,21 @@
+# Workflow schema version.
+version: 1
+kind: workflow-template
+
+template:
+  # Rendered OpenNebula template.
+  source: vm-template.one.j2
+
+cloud_init:
+  # Source-based cloud-init, paired with a JSON vars file.
+  source: cloud-init.yaml.j2
+
+defaults:
+  cpu: 2
+  memory_mb: 4096
+  disk_size_mb: 20480
+  network_name: Public
+
+required:
+  - template_name
+  - image_name

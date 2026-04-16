@@ -34,6 +34,12 @@ That means:
 - SDK and CLI share normalized models
 - transport details stay below the public service boundary
 
+Workflow note:
+
+- `one workflow template` and `one workflow vm` currently ship as CLI automation surfaces.
+- their reusable logic lives in service-layer internals, but there is no stable public SDK facade for workflow orchestration yet.
+- see `docs/workflows-vm-templates.mdx` for current workflow usage.
+
 ## Operator automation example
 
 ```python

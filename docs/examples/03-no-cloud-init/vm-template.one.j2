@@ -1,0 +1,12 @@
+{# Minimal template with no cloud-init USER_DATA payload. #}
+NAME = "{{ template_name }}"
+CPU = "{{ cpu }}"
+MEMORY = "{{ memory_mb }}"
+
+DISK = [ IMAGE = "{{ image_name }}", SIZE = "{{ disk_size_mb }}" ]
+NIC = [ NETWORK = "{{ network_name }}" ]
+
+CONTEXT = [
+  NETWORK = "YES"{% for key, value in bootstrap_env_items %},
+  {{ key }} = "{{ value | replace('\\', '\\\\') | replace('\"', '\\\"') }}"{% endfor %}
+]

@@ -23,7 +23,7 @@ uv build
 - add or update redaction tests when capture behavior changes
 - keep disposable E2E fixtures namespaced under `e2e-*`
 
-## Release process for `7.0.0+`
+## Release process for `7.0.x`
 
 Public package versions now mirror the targeted OpenNebula compatibility line.
 
@@ -32,12 +32,13 @@ Rules:
 - release tags must equal `project.version`
 - GitHub Actions publishes to PyPI only when the pushed tag matches the package version exactly
 - `7.0.0` is the first compatibility-mirrored public release
+- `7.0.1` adds workflow automation enhancements while staying on the same compatibility target
 - `0.1.0` remains only as the historical bootstrap release
 
 Preflight a release tag locally with:
 
 ```bash
-uv run python tools/check_release_version.py --tag v7.0.0
+uv run python tools/check_release_version.py --tag v7.0.1
 ```
 
 ## Required release gates

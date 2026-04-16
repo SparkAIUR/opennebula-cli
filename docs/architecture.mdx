@@ -13,7 +13,7 @@ The implementation is organized as a layered CLI and SDK so operator workflows, 
 4. `transports/`
    PyONE-backed XML-RPC transport with raw XML-RPC fallback.
 5. `services/`
-   Reusable typed operations consumed by both the CLI and the SDK.
+   Reusable typed operations consumed by both the CLI and the SDK, including workflow rendering and VM initialization helpers.
 6. `sdk/`
    Public `OneClient`, exceptions, and normalized models.
 7. `renderers/`
@@ -45,6 +45,8 @@ The implementation is organized as a layered CLI and SDK so operator workflows, 
 - `vnet` (read-only)
 - `datastore` (read-only)
 - `cluster` (read-only)
+- `workflow template` (`init`, `render`, `import`, `apply`)
+- `workflow vm` (`init`, `apply`)
 
 ## Why this matters for DevOps users
 

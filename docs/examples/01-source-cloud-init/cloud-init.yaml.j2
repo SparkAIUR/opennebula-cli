@@ -1,0 +1,51 @@
+#cloud-config
+# This cloud-init is rendered once, then passed into CONTEXT.USER_DATA.
+
+package_update: true
+packages:
+  - curl
+  - ca-certificates
+
+users:
+  # Use a variable so caller can choose the bootstrap user.
+  - name: {{ ssh_username }}
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+
+write_files:
+  - path: /etc/openclaw.env
+    permissions: "0600"
+    content: |
+{{ read_file("files/openclaw.env") | indent(6, true) }}
+  - path: /opt/openclaw-bootstrap.sh
+    permissions: "0755"
+    # Example binary/text-safe payload transfer using base64.
+    encoding: b64
+    content: {{ read_file_b64("files/openclaw-bootstrap.sh") }}
+  - path: /etc/openclaw.runtime.env
+    permissions: "0600"
+    # Existing dynamic env loop still works alongside file-based content.
+    content: |
+{% for key, value in bootstrap_env.items() %}
+      {{ key }}={{ value }}
+{% endfor %}
+{% if remote_script_url is defined and remote_script_url %}
+  - path: /opt/openclaw-remote.sh
+    permissions: "0755"
+    # Fetch text content from URL at render-time.
+    content: |
+{{ fetch_url(
+  remote_script_url,
+  method=remote_script_method | default("GET"),
+  headers=remote_script_headers | default({}),
+  params=remote_script_params | default({}),
+  timeout=remote_script_timeout | default(10)
+) | indent(6, true) }}
+{% endif %}
+
+runcmd:
+  - [ bash, -lc, "chmod +x /opt/openclaw-bootstrap.sh && /opt/openclaw-bootstrap.sh" ]
+{% if remote_script_url is defined and remote_script_url %}
+  - [ bash, -lc, "chmod +x /opt/openclaw-remote.sh && /opt/openclaw-remote.sh" ]
+{% endif %}
+  - [ bash, -lc, "echo 'source-cloud-init bootstrap complete'" ]

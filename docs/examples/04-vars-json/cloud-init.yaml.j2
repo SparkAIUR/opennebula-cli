@@ -1,0 +1,5 @@
+#cloud-config
+# This example demonstrates --vars-file using JSON.
+
+runcmd:
+  - [ bash, -lc, "echo json-vars bootstrap for {{ template_name }}" ]

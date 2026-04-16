@@ -96,3 +96,14 @@ For scripts and CI, prefer:
 ```bash
 one --output json --no-pager vm list
 ```
+
+## Workflow render network behavior
+
+`workflow template` rendering can fetch remote text via Jinja `fetch_url(...)`.
+
+Operational guidance:
+
+- use explicit `timeout` values in templates for predictable failures
+- pass auth via `headers` only when required
+- keep secrets out of committed workflow files
+- if your environment uses egress proxies, ensure standard proxy environment variables are set for the process

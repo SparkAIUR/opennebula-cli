@@ -65,10 +65,28 @@ Planned extensions:
 - plugin diagnostics
 - entry-point based registration
 
+## Workflow automation track (`7.0.1`)
+
+Implemented:
+
+- `workflow template init`
+- `workflow template render`
+- `workflow template import`
+- `workflow template apply`
+- `workflow vm init`
+- `workflow vm apply`
+
+Capabilities:
+
+- Jinja-driven VM template rendering with cloud-init support
+- local file inclusion helpers (`read_file`, `read_file_b64`)
+- remote text fetch helper (`fetch_url`) with method/headers/params/body/timeout controls
+- single and bulk VM initialization with per-entry status reporting and partial-failure resilience
+
 ## Release policy
 
 Public package versions mirror the targeted OpenNebula compatibility line.
 
-- current release: `7.0.0`
+- current release: `7.0.1`
 - compatibility target: OpenNebula `7.0.x`
 - historical bootstrap release: `0.1.0`

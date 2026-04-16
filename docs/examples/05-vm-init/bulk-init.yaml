@@ -1,0 +1,42 @@
+# Template reference used for all VMs unless a VM entry overrides it.
+template:
+  name: openclaw-ubuntu-template
+
+global:
+  # Prefix applied to each VM `name` unless `vm_name` is set per entry.
+  name_prefix: user-vm-
+  resources:
+    cpu: 2
+    vcpu: 4
+    ram: 4Gi
+    # Root disk resize in MB-compatible unit syntax.
+    disk: 50Gi
+  disks:
+    - fstype: ext4
+      size: 20Gi
+  network:
+    - network_name: default
+      model: virtio
+  context:
+    OPENCLAW_MODE: managed
+
+vms:
+  - name: alice
+    context:
+      OPENCLAW_USER: alice
+
+  - name: bob
+    # Optional explicit VM name override.
+    vm_name: openclaw-bob
+    resources:
+      ram: 8Gi
+    context:
+      OPENCLAW_USER: bob
+
+  - name: charlie
+    # Optional per-VM template override.
+    template:
+      id: 42
+    # Raw OpenNebula override wins over typed fields.
+    raw_template:
+      MEMORY: 16384

@@ -1,0 +1,18 @@
+{# OpenNebula VM template rendered by one workflow template render/import/apply. #}
+NAME = "{{ template_name }}"
+CPU = "{{ cpu }}"
+VCPU = "{{ vcpu }}"
+MEMORY = "{{ memory_mb }}"
+
+{# Disk image variables come from defaults, vars file, and/or --var overrides. #}
+DISK = [ IMAGE = "{{ image_name }}", SIZE = "{{ disk_size_mb }}" ]
+NIC = [ NETWORK = "{{ network_name }}" ]
+
+CONTEXT = [
+  NETWORK = "YES",
+  SET_HOSTNAME = "$NAME",
+  {# `cloud_init_user_data_escaped` is injected by WorkflowTemplateService. #}
+  USER_DATA = "{{ cloud_init_user_data_escaped }}"{% for key, value in bootstrap_env_items %},
+  {# `bootstrap_env_items` is also injected and sorted for deterministic output. #}
+  {{ key }} = "{{ value | replace('\\', '\\\\') | replace('\"', '\\\"') }}"{% endfor %}
+]

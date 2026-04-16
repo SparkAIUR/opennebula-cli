@@ -1,0 +1,28 @@
+# Workflow schema version.
+version: 1
+# Required discriminator for this feature.
+kind: workflow-template
+
+template:
+  # Render this Jinja2 OpenNebula template file.
+  source: vm-template.one.j2
+
+cloud_init:
+  # Render this Jinja2 cloud-init file and inject it into CONTEXT.USER_DATA.
+  source: cloud-init.yaml.j2
+
+defaults:
+  # Defaults are applied first.
+  cpu: 2
+  vcpu: 2
+  memory_mb: 4096
+  disk_size_mb: 20480
+  network_name: Public
+  ssh_username: ubuntu
+
+required:
+  # Required at render-time (and for import/apply, template_name must be non-empty).
+  - template_name
+  - image_name
+  # Useful when bootstrap env is mandatory for your first-boot flow.
+  - bootstrap_env

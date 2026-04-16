@@ -1,0 +1,19 @@
+# Workflow schema version.
+version: 1
+kind: workflow-template
+
+template:
+  source: vm-template.one.j2
+
+# cloud_init is optional. Omit when no first-boot userdata is needed.
+defaults:
+  cpu: 1
+  memory_mb: 2048
+  disk_size_mb: 10240
+  network_name: Public
+  # Keep present to show CONTEXT env injection still works without USER_DATA.
+  bootstrap_env: {}
+
+required:
+  - template_name
+  - image_name

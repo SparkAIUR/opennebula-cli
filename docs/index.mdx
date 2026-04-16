@@ -11,7 +11,7 @@ Use it when you want:
 
 ## Current release
 
-- package version: `7.0.0`
+- package version: `7.0.1`
 - compatibility target: OpenNebula `7.0.x`
 - PyPI package: `opennebula-cli`
 - import package: `opennebula_cli`
@@ -31,9 +31,15 @@ Wave 2 read-only:
 - `datastore`: `list`, `show`
 - `cluster`: `list`, `show`
 
+Workflow automation:
+
+- `workflow template`: `init`, `render`, `import`, `apply`
+- `workflow vm`: `init` (single), `apply` (bulk)
+- cloud-init render helpers: `read_file`, `read_file_b64`, `fetch_url`
+
 ## Validation status
 
-`7.0.0` was validated on a disposable OpenNebula CE `7.0.x` environment running on Ubuntu `24.04` with a localhost `lxc` host.
+`7.0.1` targets the same OpenNebula `7.0.x` compatibility line validated on a disposable OpenNebula CE environment running on Ubuntu `24.04` with a localhost `lxc` host.
 
 Live-validated for this release:
 
@@ -41,6 +47,14 @@ Live-validated for this release:
 - disposable mutation validation for:
   - `template instantiate`
   - `vm poweroff --wait`
+
+Workflow enhancements in `7.0.1` are covered by unit/integration test layers and examples under `docs/examples/`.
+
+## Workflow guide
+
+Use the dedicated guide for templating and provisioning workflows:
+
+- [Workflow VM Templates](workflows-vm-templates)
 
 ## Design stance
 

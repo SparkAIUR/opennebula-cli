@@ -15,6 +15,8 @@ one vm list
 one --output json vm list
 one --profile prod template show 24
 one --no-pager host flush 0
+one workflow template render workflow.yaml --vars-file vars.yaml
+one workflow vm apply bulk-init.yaml --wait-ready
 ```
 
 ## Compatibility syntax
@@ -58,6 +60,7 @@ Resource options stay on the subcommand itself:
 ```bash
 one vm poweroff 42 --wait --timeout 600 --no-progress
 one template instantiate 24 --name build-vm
+one workflow vm init bulk-init.yaml --vm-name alice --set global.resources.ram=8Gi
 ```
 
 ## Help examples
@@ -94,13 +97,25 @@ Guidance:
 
 ## Wait behavior
 
-The current waiter-enabled lifecycle path is `vm poweroff`.
+Current waiter-enabled lifecycle paths:
+
+- `vm poweroff --wait`
+- `workflow vm init --wait-ready`
+- `workflow vm apply --wait-ready`
 
 Example:
 
 ```bash
 one --output json vm poweroff 42 --wait --timeout 600 --no-progress
+one workflow vm apply bulk-init.yaml --wait-ready --timeout 600 --poll-interval 2
 ```
+
+## Workflow summary behavior
+
+`workflow vm` commands always print a per-entry status summary.
+
+- bulk runs continue when one VM entry fails
+- if one or more entries fail, command exits with code `12` after output is printed
 
 ## Current read-only Wave 2 scope
 

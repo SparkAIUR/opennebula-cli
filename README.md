@@ -17,13 +17,13 @@ It is built for operators, platform teams, CI/CD pipelines, and Python automatio
 Install the release that matches the OpenNebula compatibility line you want:
 
 ```bash
-uv tool install opennebula-cli==7.0.0
+uv tool install opennebula-cli==7.0.1
 ```
 
 Run it without installing permanently:
 
 ```bash
-uvx --from opennebula-cli==7.0.0 one --help
+uvx --from opennebula-cli==7.0.1 one --help
 ```
 
 For local development:
@@ -114,6 +114,47 @@ VM_ID="$(
 one --output json vm show "$VM_ID"
 ```
 
+## New in `7.0.1`: workflow templating and VM initialization
+
+This release adds an end-to-end workflow system for template rendering and VM provisioning:
+
+- `one workflow template init|render|import|apply`
+- `one workflow vm init` for single VM initialization
+- `one workflow vm apply` for bulk initialization from a list
+- cloud-init helper functions for Jinja templates:
+  - `read_file(path)`
+  - `read_file_b64(path)`
+  - `fetch_url(url, method=..., headers=..., params=..., body=..., timeout=...)`
+
+Template workflow example:
+
+```bash
+one workflow template init ./openclaw-workflow
+one workflow template render ./openclaw-workflow/workflow.yaml \
+  --vars-file ./openclaw-workflow/vars.example.yaml
+one workflow template import ./openclaw-workflow/workflow.yaml \
+  --vars-file ./openclaw-workflow/vars.example.yaml
+```
+
+Bulk VM initialization example:
+
+```bash
+one workflow vm apply docs/examples/05-vm-init/bulk-init.yaml \
+  --wait-ready \
+  --set global.name_prefix=user-vm-
+```
+
+Single VM initialization example:
+
+```bash
+one workflow vm init docs/examples/05-vm-init/bulk-init.yaml --vm-name alice
+```
+
+Read the full guide:
+
+- `docs/workflows-vm-templates.mdx`
+- `docs/examples/README.md`
+
 ## Supported command families
 
 Wave 1:
@@ -129,9 +170,14 @@ Wave 2 read-only:
 - `datastore`: `list`, `show`
 - `cluster`: `list`, `show`
 
-## Validation status for `7.0.0`
+Workflow automation:
 
-`7.0.0` targets OpenNebula `7.0.x` and was validated against:
+- `workflow template`: `init`, `render`, `import`, `apply`
+- `workflow vm`: `init`, `apply`
+
+## Validation status for `7.0.1`
+
+`7.0.1` targets OpenNebula `7.0.x` and maintains the compatibility baseline validated against:
 
 - Ubuntu `24.04`
 - OpenNebula CE `7.0.x`
@@ -150,6 +196,8 @@ Implemented but not yet fully live-validated on disposable fixtures:
 - `host flush`
 - `image delete`
 - `template delete`
+
+Workflow template and VM initialization additions are validated through unit/integration test coverage and runnable docs examples.
 
 ## Configuration and profiles
 
@@ -258,15 +306,15 @@ These scripts intentionally cover the repeatable host-preparation and read-only 
 
 Public package versions now mirror the OpenNebula compatibility target.
 
-- current release: `7.0.0`
+- current release: `7.0.1`
 - compatibility target: OpenNebula `7.0.x`
 - historical bootstrap release: `0.1.0`
 
 Release tags must always match `project.version` exactly:
 
 ```bash
-uv run python tools/check_release_version.py --tag v7.0.0
-git tag -a v7.0.0 -m "Release v7.0.0"
+uv run python tools/check_release_version.py --tag v7.0.1
+git tag -a v7.0.1 -m "Release v7.0.1"
 ```
 
 ## Docs
@@ -276,6 +324,7 @@ Tracked public documentation lives in [`docs/`](docs/):
 - `docs/index.mdx`
 - `docs/getting-started.mdx`
 - `docs/command-model.mdx`
+- `docs/workflows-vm-templates.mdx`
 - `docs/configuration.mdx`
 - `docs/sdk.mdx`
 - `docs/testing.mdx`

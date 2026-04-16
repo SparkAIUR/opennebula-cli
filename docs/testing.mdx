@@ -9,7 +9,7 @@ uv run ruff check .
 uv run mypy src tests tools
 uv run pytest
 uv run python tools/check_catalog_schema.py
-uv run python tools/check_release_version.py --tag v7.0.0
+uv run python tools/check_release_version.py --tag v7.0.1
 uv build
 ```
 
@@ -18,6 +18,7 @@ uv build
 - unit tests for models, service contracts, config/auth resolution, and helpers
 - snapshot tests for CLI help behavior
 - integration tests for compatibility entrypoints and wiring
+- integration and unit coverage for workflow template rendering and workflow VM initialization paths
 - contract and golden tests for imported private live observations
 - E2E tests for live OpenNebula validation when environment variables are present
 
@@ -74,9 +75,9 @@ Fixture rules:
 - cleanup only removes `e2e-vm-*` VMs unless explicitly told to reset base fixtures
 - base fixtures are designed to be idempotent across repeated runs
 
-## Release validation for `7.0.0`
+## Release validation for `7.0.1`
 
-`7.0.0` was validated against:
+`7.0.1` maintains the OpenNebula `7.0.x` compatibility baseline validated against:
 
 - Ubuntu `24.04`
 - OpenNebula CE `7.0.x`
@@ -88,3 +89,5 @@ Live release coverage included:
 - read-only `list` and `show` for Wave 1 and Wave 2 families
 - disposable `template instantiate`
 - disposable `vm poweroff --wait`
+
+Workflow additions in `7.0.1` are validated through unit/integration layers and examples-driven command coverage.

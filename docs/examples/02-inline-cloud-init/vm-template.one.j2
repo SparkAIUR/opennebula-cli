@@ -1,0 +1,13 @@
+{# Inline cloud-init variant: no separate cloud-init file. #}
+NAME = "{{ template_name }}"
+CPU = "{{ cpu }}"
+MEMORY = "{{ memory_mb }}"
+
+DISK = [ IMAGE = "{{ image_name }}", SIZE = "{{ disk_size_mb }}" ]
+NIC = [ NETWORK = "{{ network_name }}" ]
+
+CONTEXT = [
+  NETWORK = "YES",
+  USER_DATA = "{{ cloud_init_user_data_escaped }}"{% for key, value in bootstrap_env_items %},
+  {{ key }} = "{{ value | replace('\\', '\\\\') | replace('\"', '\\\"') }}"{% endfor %}
+]

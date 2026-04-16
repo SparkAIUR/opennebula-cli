@@ -1,0 +1,249 @@
+# Workflow VM Templates
+
+The workflow system provides two complementary capabilities:
+
+- `one workflow template ...` for rendering/importing OpenNebula VM templates with Jinja + cloud-init.
+- `one workflow vm ...` for initializing one or many VMs from a template with per-VM variables.
+
+This guide covers both flows end-to-end.
+
+## Use Cases
+
+Use workflows when you need:
+
+- repeatable VM template generation for environments such as dev/staging/prod
+- cloud-init bootstrapping with dynamic variables
+- bulk VM provisioning from a single YAML file (for example one VM per user)
+- deterministic command-line automation in CI/CD
+
+## Workflow 1: Template Render + Import
+
+### Initialize a scaffold
+
+```bash
+one workflow template init ./openclaw-workflow
+```
+
+Starter files:
+
+- `workflow.yaml`
+- `vm-template.one.j2`
+- `cloud-init.yaml.j2`
+- `vars.example.yaml`
+
+### Typical `workflow.yaml`
+
+```yaml
+version: 1
+kind: workflow-template
+template:
+  source: vm-template.one.j2
+cloud_init:
+  source: cloud-init.yaml.j2
+defaults:
+  cpu: 2
+  vcpu: 2
+  memory_mb: 4096
+required:
+  - template_name
+  - image_name
+  - network_name
+```
+
+### Render and import
+
+```bash
+# Render to stdout
+one workflow template render workflow.yaml --vars-file vars.yaml
+
+# Render to a file
+one workflow template render workflow.yaml --vars-file vars.yaml --output-file rendered.one
+
+# Import into OpenNebula
+one workflow template import workflow.yaml --vars-file vars.yaml
+
+# Render + optional output file + import
+one workflow template apply workflow.yaml --vars-file vars.yaml --output-file rendered.one
+```
+
+Variable precedence:
+
+- `defaults` in `workflow.yaml`
+- `--vars-file`
+- repeatable `--var key=value` (highest precedence)
+
+## Cloud-Init Helpers
+
+When rendering Jinja templates (including `cloud-init.yaml.j2`), the following helpers are available:
+
+- `read_file(path)` reads UTF-8 text from a local file.
+- `read_file_b64(path)` reads file bytes and returns base64 text.
+- `fetch_url(url, ...)` fetches remote text at render time.
+
+### `fetch_url(...)` options
+
+- `method` (default `GET`)
+- `headers` (mapping)
+- `params` (query-string mapping)
+- `timeout` (seconds, default `10`)
+- `body` (`str`, `bytes`, or mapping)
+- `encoding` (optional explicit decode override)
+
+Example:
+
+```jinja
+{{ fetch_url(
+  "https://config.example.com/bootstrap.sh",
+  method="GET",
+  headers={"Authorization": "Bearer " ~ token},
+  params={"env": deploy_env, "user": username},
+  timeout=15
+) }}
+```
+
+Failure behavior:
+
+- non-2xx HTTP response, network errors, invalid method/options, timeout, or decode failures raise a clear `ApiError`.
+- render/import/apply exits early with the error; no partial template import happens.
+
+## Workflow 2: VM Initialization From Templates
+
+Use `one workflow vm` to instantiate VMs from an existing OpenNebula template with global defaults and per-VM overrides.
+
+### Bulk file structure
+
+```yaml
+template:
+  name: openclaw-ubuntu-template
+
+global:
+  name_prefix: user-vm-
+  resources:
+    cpu: 2
+    vcpu: 4
+    ram: 4Gi
+    disk: 50Gi
+  network:
+    - network_name: default
+      model: virtio
+  context:
+    OPENCLAW_ENV: production
+
+vms:
+  - name: alice
+    context:
+      OPENCLAW_USER: alice
+  - name: bob
+    resources:
+      ram: 8Gi
+    context:
+      OPENCLAW_USER: bob
+```
+
+### Bulk initialization
+
+```bash
+one workflow vm apply bulk-init.yaml
+```
+
+Optional controls:
+
+- `--template-id` or `--template-name` to override template selection for all entries
+- repeatable `--set path=value` for runtime overrides
+- `--wait-ready --timeout ... --poll-interval ...` to wait for `ACTIVE/RUNNING`
+
+### Single initialization
+
+From file:
+
+```bash
+# Select by VM name
+one workflow vm init bulk-init.yaml --vm-name alice
+
+# Select by index
+one workflow vm init bulk-init.yaml --index 0
+```
+
+Inline (no file):
+
+```bash
+one workflow vm init \
+  --name alice \
+  --template-name openclaw-ubuntu-template \
+  --set global.resources.ram=8Gi \
+  --set global.context.OPENCLAW_USER=alice
+```
+
+## Merge And Override Rules
+
+- `global` and each `vms[]` entry are deep-merged for mappings.
+- list fields are replaced by the VM entry when overridden.
+- template selection priority:
+  - CLI `--template-id/--template-name`
+  - per-VM `template`
+  - top-level `template`
+- VM name resolution:
+  - `vm_name` if set
+  - otherwise `name_prefix + name`
+- `--set` applies after file load and can target nested objects/lists.
+
+## Resource Mapping Rules
+
+Key mappings into OpenNebula instantiate overrides:
+
+- `resources.cpu -> CPU`
+- `resources.vcpu -> VCPU`
+- `resources.ram -> MEMORY` (MB)
+- `resources.disk -> DISK[DISK_ID=0].SIZE` (MB)
+- `disks[] -> DISK[]`
+- `network[] -> NIC[]` (`network_name -> NETWORK`)
+- `context -> CONTEXT`
+- `raw_template` merged last (wins conflicts)
+
+Accepted size formats:
+
+- raw MB number (example `4096`)
+- `Ki`, `Mi`, `Gi`, `Ti` (example `4Gi`, `50Gi`)
+
+## Status, Errors, And Exit Codes
+
+- `one workflow vm apply` continues processing even if an individual VM fails.
+- command output includes per-entry status (`success` or `failed`) and error text for failures.
+- if any entry fails, the CLI exits with status code `12` after printing the full summary.
+
+## Troubleshooting
+
+- `Template named 'X' was not found`
+  - verify template exists in OpenNebula and names are exact.
+- `Template name 'X' is ambiguous across IDs`
+  - use `--template-id` or unique template names.
+- `Single initialization requires a selector ...`
+  - pass `--vm-name` or `--index` when `vms` contains multiple entries.
+- `` `--set` index out of range `` or path errors
+  - verify list indexes and dot-path structure.
+- `... must be raw MB or use Ki/Mi/Gi/Ti suffixes`
+  - fix unit format (for example `8Gi`).
+- `Unable to fetch URL ...`
+  - validate URL reachability, auth headers, method, timeout, and encoding.
+- `pyone is not installed`
+  - reinstall/upgrade to `opennebula-cli==7.0.1` (this release explicitly includes `six` to avoid pyone runtime dependency issues).
+
+## Best Practices
+
+- Keep template and cloud-init Jinja files in source control with clear ownership.
+- Store large scripts/config payloads in files and load them with `read_file` / `read_file_b64`.
+- Use `fetch_url` for centrally managed bootstrap scripts, but pin URLs and protect with auth headers.
+- Prefer `--template-id` in production to avoid name ambiguity.
+- Run bulk workflows first in a staging project with `--wait-ready` enabled.
+- Use `--set` only for operational overrides; keep durable defaults in YAML.
+- Keep VM names deterministic (`name_prefix` + stable `name`) for idempotent operations and auditability.
+
+## Example Catalog
+
+See runnable examples in [`docs/examples/README.md`](examples/README):
+
+- `01-source-cloud-init`
+- `02-inline-cloud-init`
+- `03-no-cloud-init`
+- `04-vars-json`
+- `05-vm-init`

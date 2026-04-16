@@ -1,0 +1,13 @@
+{
+  "__comment": "JSON has no native comments; this key is documentation and is ignored unless templates reference it.",
+  "template_name": "openclaw-json-template",
+  "image_name": "Ubuntu 24.04",
+  "cpu": 6,
+  "memory_mb": 8192,
+  "disk_size_mb": 40960,
+  "network_name": "Public",
+  "bootstrap_env": {
+    "OPENCLAW_USER_ID": "json-user",
+    "OPENCLAW_INSTANCE_ID": "json-instance-a"
+  }
+}

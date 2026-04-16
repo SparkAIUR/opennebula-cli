@@ -1,0 +1,8 @@
+# Required import/apply template identifier.
+template_name: openclaw-inline-template
+image_name: Ubuntu 24.04
+
+bootstrap_env:
+  # These values are available to the inline cloud-init Jinja loop.
+  OPENCLAW_USER_ID: user-inline
+  OPENCLAW_ENDPOINT: https://api.example.com/bootstrap
