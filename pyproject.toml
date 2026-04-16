@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "opennebula-cli"
-version = "7.0.0"
+version = "7.0.1"
 description = "Modern Python CLI and SDK for OpenNebula"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -26,10 +26,12 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
+  "Jinja2>=3.1.6,<4",
   "platformdirs>=4.2,<5",
   "pydantic>=2.12.5,<3",
   "PyYAML>=6.0,<7",
   "pyone>=7.0.2,<8",
+  "six>=1.17.0,<2",
   "rich>=14.3.3,<15",
   "typer>=0.24.1,<0.25",
 ]
