@@ -290,8 +290,8 @@ That flow:
 For multi-node staging environments, this repo also ships simple bootstrap helpers:
 
 ```bash
-export STAGING_FRONTEND=104.130.246.124
-export STAGING_HYPERVISORS=104.130.246.141,104.130.246.135,104.130.246.139,104.130.246.134
+export STAGING_FRONTEND=frontend.example.com
+export STAGING_HYPERVISORS=hv-01.example.com,hv-02.example.com,hv-03.example.com,hv-04.example.com
 export STAGING_HYPERVISOR_NAMES=lab-hv-01,lab-hv-02,lab-hv-03,lab-hv-04
 
 bash tools/staging_bootstrap_cluster.sh gather

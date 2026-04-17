@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
 
-ASSH_REPO = Path("/Volumes/S0/github/_personal/assh")
+
+def _default_assh_repo() -> Path:
+    """Return the default sibling checkout path for the optional assh repo."""
+
+    repo_root = Path(__file__).resolve().parents[1]
+    return repo_root.parent / "assh"
+
+
+ASSH_REPO = Path(os.environ.get("ASSH_REPO", str(_default_assh_repo()))).expanduser()
 
 
 def has_assh_checkout() -> bool:

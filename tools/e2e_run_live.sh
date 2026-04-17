@@ -2,7 +2,8 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-assh_repo="${ASSH_REPO:-/Volumes/S0/github/_personal/assh}"
+default_assh_repo="$(cd "${repo_root}/.." && pwd)/assh"
+assh_repo="${ASSH_REPO:-${default_assh_repo}}"
 target_alias="${ONE_E2E_TARGET_ALIAS:-opennebula-e2e}"
 target_endpoint="${ONE_E2E_TARGET_ENDPOINT:-}"
 remote_root="${ONE_E2E_REMOTE_ROOT:-/dev/shm/opennebula-cli-e2e}"
