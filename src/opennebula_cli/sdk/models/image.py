@@ -32,3 +32,19 @@ class Image(BaseModel):
             datastore_id=int(datastore) if datastore not in (None, "") else None,
             template=normalize_value(object_get(raw, "TEMPLATE", {})),
         )
+
+
+class ImageOwnerSummary(BaseModel):
+    """Image ownership and attachment summary for recovery triage."""
+
+    model_config = ConfigDict(frozen=True)
+
+    id: int
+    name: str
+    state: str
+    datastore_id: int | None = None
+    source: str | None = None
+    path: str | None = None
+    running_vms: list[int] = Field(default_factory=list)
+    vms: list[int] = Field(default_factory=list)
+    template: dict[str, Any] = Field(default_factory=dict)

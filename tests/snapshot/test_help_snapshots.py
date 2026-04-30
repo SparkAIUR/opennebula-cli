@@ -11,12 +11,22 @@ ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 IMPLEMENTED_SUBCOMMANDS = [
     (("vm", "list"), True),
     (("vm", "show"), True),
+    (("vm", "disk-list"), True),
+    (("vm", "disk-attach"), True),
+    (("vm", "disk-detach"), True),
+    (("vm", "recover"), True),
+    (("vm", "reboot"), True),
+    (("vm", "reboot-hard"), True),
+    (("vm", "resume"), True),
+    (("vm", "wait"), True),
     (("vm", "poweroff"), True),
+    (("vm", "poweroff-hard"), True),
     (("host", "list"), True),
     (("host", "show"), True),
     (("host", "flush"), True),
     (("image", "list"), True),
     (("image", "show"), True),
+    (("image", "owner"), True),
     (("image", "delete"), True),
     (("template", "list"), True),
     (("template", "show"), True),
@@ -34,6 +44,7 @@ IMPLEMENTED_SUBCOMMANDS = [
     (("workflow", "template", "apply"), False),
     (("workflow", "vm", "init"), False),
     (("workflow", "vm", "apply"), False),
+    (("raw", "call"), False),
 ]
 
 

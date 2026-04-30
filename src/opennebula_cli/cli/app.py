@@ -3,11 +3,13 @@
 import click
 import typer
 
+from opennebula_cli.cli.agents_guide import AGENTS_GUIDE
 from opennebula_cli.cli.resources import (
     cluster,
     datastore,
     host,
     image,
+    raw,
     template,
     vm,
     vnet,
@@ -29,6 +31,14 @@ app.add_typer(vnet.app, name="vnet")
 app.add_typer(datastore.app, name="datastore")
 app.add_typer(cluster.app, name="cluster")
 app.add_typer(workflow.app, name="workflow")
+app.add_typer(raw.app, name="raw")
+
+
+@app.command("agents")
+def agents() -> None:
+    """Print the AI-agent guide."""
+
+    typer.echo(AGENTS_GUIDE)
 
 
 @app.callback()

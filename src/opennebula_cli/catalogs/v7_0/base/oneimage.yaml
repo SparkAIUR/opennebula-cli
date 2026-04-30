@@ -22,10 +22,26 @@ commands:
     args:
       - name: image_id
         type: int
-    options: []
+    options:
+      - name: full
+        type: bool
     parity:
       status: implemented
       source: official-cli
+  owner:
+    aliases: []
+    handler: composite
+    backend_method: one.image.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: image_id
+        type: int
+    options: []
+    parity:
+      status: implemented
+      source: csi-recovery
+      notes: Summarizes RUNNING_VMS and VMS for CSI repair triage.
   delete:
     aliases: []
     handler: rpc

@@ -159,9 +159,9 @@ Read the full guide:
 
 Wave 1:
 
-- `vm`: `list`, `show`, `poweroff`
+- `vm`: `list`, `show`, `disk-list`, `disk-attach`, `disk-detach`, `recover`, `reboot`, `reboot-hard`, `resume`, `wait`, `poweroff`, `poweroff-hard`
 - `host`: `list`, `show`, `flush`
-- `image`: `list`, `show`, `delete`
+- `image`: `list`, `show`, `owner`, `delete`
 - `template`: `list`, `show`, `delete`, `instantiate`
 
 Wave 2 read-only:
@@ -174,6 +174,11 @@ Workflow automation:
 
 - `workflow template`: `init`, `render`, `import`, `apply`
 - `workflow vm`: `init`, `apply`
+
+Recovery and agent support:
+
+- `raw`: guarded `call`
+- `agents`: print the AI-agent usage guide
 
 ## Validation status for `7.0.1`
 

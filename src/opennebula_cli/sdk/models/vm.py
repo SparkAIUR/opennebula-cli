@@ -162,3 +162,19 @@ class Vm(BaseModel):
             template=normalized_template,
             user_template=normalized_user_template,
         )
+
+
+class VmDisk(BaseModel):
+    """VM disk summary for recovery workflows."""
+
+    model_config = ConfigDict(frozen=True)
+
+    disk_id: int | None = None
+    image_id: int | None = None
+    image: str | None = None
+    target: str | None = None
+    dev_prefix: str | None = None
+    datastore_id: int | None = None
+    source: str | None = None
+    serial: str | None = None
+    raw: dict[str, Any] = Field(default_factory=dict)

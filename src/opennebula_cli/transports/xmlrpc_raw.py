@@ -23,13 +23,16 @@ class RawXmlRpcTransport:
         cert_dir: str | None = None,
     ) -> None:
         self._session = session
-        context = ssl.create_default_context()
-        if cert_dir:
-            context.load_verify_locations(capath=cert_dir)
-        if not verify_ssl:
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-        transport = xmlrpc.client.SafeTransport(context=context)
+        if endpoint.startswith("https://"):
+            context = ssl.create_default_context()
+            if cert_dir:
+                context.load_verify_locations(capath=cert_dir)
+            if not verify_ssl:
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+            transport: xmlrpc.client.Transport = xmlrpc.client.SafeTransport(context=context)
+        else:
+            transport = xmlrpc.client.Transport()
         transport.timeout = timeout  # type: ignore[attr-defined]
         self._server = xmlrpc.client.ServerProxy(endpoint, transport=transport, allow_none=True)
 

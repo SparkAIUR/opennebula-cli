@@ -11,6 +11,7 @@ from opennebula_cli.services import (
     DatastoreService,
     HostService,
     ImageService,
+    RawService,
     TemplateService,
     VmService,
     VnetService,
@@ -58,6 +59,7 @@ class OneClient:
     host: HostService
     image: ImageService
     template: TemplateService
+    raw: RawService
 
     @classmethod
     def from_config(cls, config: ResolvedConfig, *, backend: str = "pyone") -> OneClient:
@@ -73,6 +75,7 @@ class OneClient:
             host=HostService(transport),
             image=ImageService(transport),
             template=TemplateService(transport),
+            raw=RawService(transport),
         )
 
     @classmethod

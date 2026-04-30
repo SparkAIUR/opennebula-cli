@@ -59,8 +59,12 @@ Resource options stay on the subcommand itself:
 
 ```bash
 one vm poweroff 42 --wait --timeout 600 --no-progress
+one --output json vm disk-list 42
+one --output json vm recover 42 --retry
+one --output json image owner 18
 one template instantiate 24 --name build-vm
 one workflow vm init bulk-init.yaml --vm-name alice --set global.resources.ram=8Gi
+one agents
 ```
 
 ## Help examples

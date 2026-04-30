@@ -23,10 +23,160 @@ commands:
     args:
       - name: vm_id
         type: int
+    options:
+      - name: full
+        type: bool
+    parity:
+      status: implemented
+      source: official-cli
+  disk-list:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options: []
+    parity:
+      status: implemented
+      source: csi-recovery
+      notes: Recovery helper derived from VM TEMPLATE/DISK records.
+  disk-attach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.attach
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options:
+      - name: image_id
+        type: int
+      - name: dev_prefix
+        type: str
+      - name: target
+        type: str
+      - name: driver
+        type: str
+      - name: cache
+        type: str
+      - name: readonly
+        type: bool
+    parity:
+      status: implemented
+      source: official-cli
+  disk-detach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.detach
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options:
+      - name: disk_id
+        type: int
+    parity:
+      status: implemented
+      source: official-cli
+  recover:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.recover
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options:
+      - name: success
+        type: bool
+      - name: failure
+        type: bool
+      - name: retry
+        type: bool
+      - name: delete
+        type: bool
+    parity:
+      status: implemented
+      source: official-cli
+  reboot:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
     options: []
     parity:
       status: implemented
       source: official-cli
+  reboot-hard:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+  resume:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+  poweroff-hard:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: true
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options:
+      - name: wait
+        type: bool
+    parity:
+      status: implemented
+      source: official-cli
+  wait:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: true
+    outputs: [table, json, yaml, xml, raw]
+    args:
+      - name: vm_id
+        type: int
+    options:
+      - name: state
+        type: str
+      - name: lcm_state
+        type: str
+      - name: timeout
+        type: str
+    parity:
+      status: implemented
+      source: csi-recovery
   poweroff:
     aliases: []
     handler: rpc

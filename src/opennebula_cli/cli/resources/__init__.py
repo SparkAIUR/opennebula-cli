@@ -5,6 +5,7 @@ __all__ = [
     "datastore",
     "host",
     "image",
+    "raw",
     "template",
     "vm",
     "vnet",

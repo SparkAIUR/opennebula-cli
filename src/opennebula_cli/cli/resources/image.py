@@ -33,12 +33,35 @@ def list_images(ctx: typer.Context) -> None:
     "show",
     epilog=command_epilog("image", "show", "18", "18 --output yaml"),
 )
-def show_image(ctx: typer.Context, image_id: int) -> None:
+def show_image(
+    ctx: typer.Context,
+    image_id: int,
+    full: bool = typer.Option(False, "--full", help="Return lossless normalized backend data."),
+) -> None:
     """Show an image."""
 
     state = _state(ctx)
     try:
-        state.render(state.client().image.show(image_id), resource="image")
+        result = (
+            state.client().image.show_full(image_id)
+            if full
+            else state.client().image.show(image_id)
+        )
+        state.render(result, resource="image")
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@app.command(
+    "owner",
+    epilog=command_epilog("image", "owner", "18 --output json"),
+)
+def image_owner(ctx: typer.Context, image_id: int) -> None:
+    """Summarize image VM ownership for recovery triage."""
+
+    state = _state(ctx)
+    try:
+        state.render(state.client().image.owner(image_id), resource="image-owner")
     except Exception as exc:
         raise_cli_error(exc)
 
