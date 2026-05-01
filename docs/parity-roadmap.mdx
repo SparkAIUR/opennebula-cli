@@ -1,87 +1,48 @@
 # Parity Roadmap
 
-The command parity program is organized in waves and tracked in YAML catalogs under `src/opennebula_cli/catalogs/v7_0/base/`.
+The command parity program is tracked in YAML catalogs under `src/opennebula_cli/catalogs/v7_0/base/`.
 
-## Wave 1
+## OpenNebula 7.0.2 captured coverage
+
+Implemented for the captured 7.0.2 command families in `refs/notes/full-commands-7.0.2.md`:
 
 - `onevm`
 - `onehost`
 - `oneimage`
 - `onetemplate`
-
-Implemented commands:
-
-- `vm`: `list`, `show`, `poweroff`
-- `host`: `list`, `show`, `flush`
-- `image`: `list`, `show`, `delete`
-- `template`: `list`, `show`, `delete`, `instantiate`
-
-Validation status:
-
-- read-only `list` and `show` are live-validated
-- `template instantiate` and `vm poweroff` are live-validated on disposable fixtures
-- `host flush`, `image delete`, and `template delete` remain implemented but not yet required as live release blockers
-
-## Wave 2
-
 - `onevnet`
 - `onedatastore`
 - `onecluster`
+- `oneflow-template`
 
-Current status:
+The first full-coverage pass provides command availability, required arguments, and core/high-value options through the service layer. Commands that already have typed SDK paths keep those typed implementations. The broader official parity surface uses a generic XML-RPC-shaped runner so each captured verb is available in canonical form and through the compatibility wrappers.
 
-- `list` and `show` are implemented
-- read-only `list` and `show` are live-validated
-- mutating Wave 2 verbs remain cataloged, not implemented
+Validation status:
 
-## Wave 3
+- local command coverage check passes for all captured commands
+- unit/static tests use fake transports only
+- no live credential or remote OpenNebula validation is part of this pass
 
-- `oneuser`
-- `onegroup`
-- `oneacl`
-- `onezone`
-- `onevdc`
+## Project helpers
 
-Status:
+Additional helper commands remain intentionally outside the official capture:
 
-- not yet implemented
+- `vm disk-list`
+- `vm wait`
+- `vm poweroff-hard`
+- `vm reboot-hard`
+- `image owner`
+- `raw call`
+- `agents`
+- `workflow ...`
 
-## Wave 4
+## Remaining roadmap
 
-- `onesecgroup`
-- `onevmgroup`
-- `onemarket`
-- `onemarketapp`
+Future parity expansion should target additional OpenNebula command families not present in the 7.0.2 capture used for this pass:
 
-Status:
-
-- not yet implemented
-
-## Plugin wave
-
-Planned extensions:
-
-- OneFlow plugin boundary
-- plugin diagnostics
-- entry-point based registration
-
-## Workflow automation track (`7.0.1`)
-
-Implemented:
-
-- `workflow template init`
-- `workflow template render`
-- `workflow template import`
-- `workflow template apply`
-- `workflow vm init`
-- `workflow vm apply`
-
-Capabilities:
-
-- Jinja-driven VM template rendering with cloud-init support
-- local file inclusion helpers (`read_file`, `read_file_b64`)
-- remote text fetch helper (`fetch_url`) with method/headers/params/body/timeout controls
-- single and bulk VM initialization with per-entry status reporting and partial-failure resilience
+- `oneuser`, `onegroup`, `oneacl`, `onezone`, `onevdc`
+- `onesecgroup`, `onevmgroup`, `onemarket`, `onemarketapp`
+- OneFlow/plugin-backed commands
 
 ## Release policy
 
@@ -89,4 +50,3 @@ Public package versions mirror the targeted OpenNebula compatibility line.
 
 - current release: `7.0.1`
 - compatibility target: OpenNebula `7.0.x`
-- historical bootstrap release: `0.1.0`

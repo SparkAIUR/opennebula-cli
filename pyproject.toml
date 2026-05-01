@@ -50,6 +50,7 @@ onetemplate = "opennebula_cli.compat.onetemplate:main"
 onevnet = "opennebula_cli.compat.onevnet:main"
 onedatastore = "opennebula_cli.compat.onedatastore:main"
 onecluster = "opennebula_cli.compat.onecluster:main"
+oneflow-template = "opennebula_cli.compat.oneflow_template:main"
 
 [project.entry-points."opennebula_cli.plugins"]
 builtin = "opennebula_cli.plugins.builtin:plugin"

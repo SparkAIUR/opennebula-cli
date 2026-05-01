@@ -3,6 +3,7 @@
 __all__ = [
     "cluster",
     "datastore",
+    "flow_template",
     "host",
     "image",
     "raw",

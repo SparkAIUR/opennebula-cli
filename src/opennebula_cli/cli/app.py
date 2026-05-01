@@ -7,6 +7,7 @@ from opennebula_cli.cli.agents_guide import AGENTS_GUIDE
 from opennebula_cli.cli.resources import (
     cluster,
     datastore,
+    flow_template,
     host,
     image,
     raw,
@@ -30,6 +31,7 @@ app.add_typer(template.app, name="template")
 app.add_typer(vnet.app, name="vnet")
 app.add_typer(datastore.app, name="datastore")
 app.add_typer(cluster.app, name="cluster")
+app.add_typer(flow_template.app, name="flow-template")
 app.add_typer(workflow.app, name="workflow")
 app.add_typer(raw.app, name="raw")
 

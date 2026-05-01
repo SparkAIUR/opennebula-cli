@@ -1,0 +1,88 @@
+family: flow-template
+script: oneflow-template
+version: '7.0'
+commands:
+  chgrp:
+    handler: rest
+    backend_method: POST /service_template/<id>/action
+    parity:
+      status: implemented
+      source: official-cli
+      notes: OneFlow REST action perform=chgrp.
+  chmod:
+    handler: rest
+    backend_method: POST /service_template/<id>/action
+    parity:
+      status: implemented
+      source: official-cli
+      notes: OneFlow REST action perform=chmod.
+  chown:
+    handler: rest
+    backend_method: POST /service_template/<id>/action
+    parity:
+      status: implemented
+      source: official-cli
+      notes: OneFlow REST action perform=chown.
+  clone:
+    handler: rest
+    backend_method: GET+POST /service_template
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Implemented by reading template JSON and posting a new template payload.
+  create:
+    handler: rest
+    backend_method: POST /service_template
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Reads JSON body from file or STDIN.
+  delete:
+    handler: rest
+    backend_method: DELETE /service_template/<id>
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Supports delete_images and delete_templates query flags.
+  instantiate:
+    handler: rest
+    backend_method: POST /service_template/<id>/action
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Uses action perform=instantiate and optional params.merge_template.
+  list:
+    handler: rest
+    backend_method: GET /service_template
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Returns DOCUMENT_POOL.DOCUMENT entries.
+  rename:
+    handler: rest
+    backend_method: GET+PUT /service_template/<id>
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Implemented by updating name in full template body.
+  show:
+    handler: rest
+    backend_method: GET /service_template/<id>
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Returns DOCUMENT payload.
+  top:
+    handler: rest
+    backend_method: GET /service_template
+    parity:
+      status: implemented
+      source: official-cli
+      notes: First pass mirrors list snapshot mode.
+  update:
+    handler: rest
+    backend_method: PUT /service_template/<id>
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Reads JSON body from file or STDIN.

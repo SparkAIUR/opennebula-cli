@@ -21,7 +21,7 @@ one workflow vm apply bulk-init.yaml --wait-ready
 
 ## Compatibility syntax
 
-Compatibility wrappers keep the official family names available:
+Compatibility wrappers keep the captured official family names available:
 
 ```bash
 one<resource> [GLOBAL OPTIONS] <verb> [RESOURCE ARGS] [RESOURCE OPTIONS]
@@ -35,6 +35,21 @@ onevm --output json list
 oneimage --profile prod show 13
 onecluster --output yaml show 0
 ```
+
+## Coverage
+
+The CLI exposes every captured OpenNebula 7.0.2 command for these families:
+
+- `vm`
+- `host`
+- `image`
+- `template`
+- `vnet`
+- `datastore`
+- `cluster`
+- `flow-template` (compatible `oneflow-template` wrapper)
+
+Typed commands such as `list`, `show`, `template instantiate`, recovery helpers, and selected VM lifecycle operations return normalized SDK models. The broader official surface is routed through a generic service runner that preserves command availability and core XML-RPC behavior while deeper typed models are added incrementally.
 
 ## Global options vs resource options
 
@@ -67,21 +82,6 @@ one workflow vm init bulk-init.yaml --vm-name alice --set global.resources.ram=8
 one agents
 ```
 
-## Help examples
-
-Every implemented subcommand includes concrete examples in `--help`.
-
-Example:
-
-```text
-$ one vm list --help
-Examples:
-  one --output json vm list
-  onevm --output json list
-```
-
-Mutation commands also include a caution line in their help output.
-
 ## Output modes
 
 Supported output modes:
@@ -101,9 +101,11 @@ Guidance:
 
 ## Wait behavior
 
-Current waiter-enabled lifecycle paths:
+Waiter-enabled lifecycle paths:
 
 - `vm poweroff --wait`
+- `vm poweroff-hard --wait`
+- `vm wait`
 - `workflow vm init --wait-ready`
 - `workflow vm apply --wait-ready`
 
@@ -111,20 +113,18 @@ Example:
 
 ```bash
 one --output json vm poweroff 42 --wait --timeout 600 --no-progress
+one --output json vm wait 42 --state ACTIVE --lcm-state RUNNING --timeout 10m
 one workflow vm apply bulk-init.yaml --wait-ready --timeout 600 --poll-interval 2
 ```
 
-## Workflow summary behavior
+## Local validation boundary
 
-`workflow vm` commands always print a per-entry status summary.
+The parity checks for this pass are local-only:
 
-- bulk runs continue when one VM entry fails
-- if one or more entries fail, command exits with code `12` after output is printed
+```bash
+uv run python tools/check_command_coverage.py
+uv run python tools/check_catalog_schema.py
+uv run pytest
+```
 
-## Current read-only Wave 2 scope
-
-Wave 2 currently provides `list` and `show` for:
-
-- `vnet`
-- `datastore`
-- `cluster`
+Do not run live credential validation until a suitable disposable OpenNebula dev environment is available.

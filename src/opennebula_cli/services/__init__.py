@@ -2,6 +2,7 @@
 
 from opennebula_cli.services.cluster import ClusterService
 from opennebula_cli.services.datastore import DatastoreService
+from opennebula_cli.services.flow_template import OneFlowTemplateService
 from opennebula_cli.services.host import HostService
 from opennebula_cli.services.image import ImageService
 from opennebula_cli.services.raw import RawService
