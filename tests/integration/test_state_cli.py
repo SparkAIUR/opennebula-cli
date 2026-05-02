@@ -154,3 +154,77 @@ def test_state_ctx_show_missing_context_errors(tmp_path: Path) -> None:
     result = runner.invoke(app, ["state", "ctx", "show", "missing"], env=env)
     assert result.exit_code != 0
     assert "was not found in auth config" in result.output
+
+
+def test_state_ctx_validate_checks_endpoints_and_prints_progress(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    env = _env(tmp_path)
+    setup = runner.invoke(
+        app,
+        [
+            "state",
+            "ctx",
+            "set",
+            "--name",
+            "staging",
+            "--endpoint",
+            "http://on.sprkinfra.com:2633/RPC2",
+            "--user",
+            "user1",
+            "--password",
+            "pass1",
+        ],
+        env=env,
+    )
+    assert setup.exit_code == 0
+
+    monkeypatch.setattr(
+        "opennebula_cli.cli.resources.state._check_endpoint",
+        lambda _url, *, timeout: (True, f"timeout={timeout}"),
+    )
+
+    result = runner.invoke(app, ["state", "ctx", "validate", "--timeout", "3"], env=env)
+
+    assert result.exit_code == 0
+    assert "Context: staging" in result.stdout
+    assert "checking xmlrpc" in result.stdout
+    assert "checking oneflow" in result.stdout
+    assert "checking firestone" in result.stdout
+    assert "checking web" in result.stdout
+    assert "Validation complete: 4/4 checks passed" in result.stdout
+
+
+def test_state_ctx_validate_all_contexts(tmp_path: Path, monkeypatch) -> None:
+    env = _env(tmp_path)
+    for name in ("staging", "prod"):
+        result = runner.invoke(
+            app,
+            [
+                "state",
+                "ctx",
+                "set",
+                "--name",
+                name,
+                "--endpoint",
+                f"https://{name}.example.com/RPC2",
+                "--user",
+                name,
+                "--password",
+                "pass",
+            ],
+            env=env,
+        )
+        assert result.exit_code == 0
+
+    monkeypatch.setattr(
+        "opennebula_cli.cli.resources.state._check_endpoint",
+        lambda _url, *, timeout: (True, f"timeout={timeout}"),
+    )
+
+    result = runner.invoke(app, ["state", "ctx", "validate", "--all"], env=env)
+    assert result.exit_code == 0
+    assert "Context: staging" in result.stdout
+    assert "Context: prod" in result.stdout
+    assert "Validation complete: 8/8 checks passed" in result.stdout

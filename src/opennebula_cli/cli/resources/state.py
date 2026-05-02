@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 from typing import cast
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 import typer
 
@@ -17,6 +19,8 @@ from opennebula_cli.auth.context_config import (
 )
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.state import AppState
+from opennebula_cli.config.endpoints import derive_service_endpoint
+from opennebula_cli.sdk.exceptions import ConnectionError
 from opennebula_cli.state_store import LOCK_ACTION_CHOICES, StateStore, StoredContext
 
 app = typer.Typer(no_args_is_help=True, help="Manage local CLI state, locks, and contexts.")
@@ -84,6 +88,45 @@ def _ctx_source(use_source: str) -> str:
     if normalized == "auto":
         return "auth" if _use_auth_config_contexts() else "db"
     return normalized
+
+
+def _contexts_for_source(source: str) -> tuple[list[StoredContext], str | None]:
+    if source == "auth":
+        config = load_auth_config()
+        contexts = [
+            StoredContext(
+                name=item.name,
+                endpoint=item.endpoint,
+                username=item.auth.username,
+                password=item.auth.password,
+                version=item.version,
+            )
+            for item in (config.contexts if config else ())
+        ]
+        return contexts, (config.current_context if config else None)
+
+    store = StateStore()
+    return store.list_contexts(), store.active_context_name()
+
+
+def _auth_context_endpoints(name: str) -> dict[str, str]:
+    config = load_auth_config()
+    selected = config.resolve_named(name) if config else None
+    return dict(selected.endpoints or {}) if selected else {}
+
+
+def _check_endpoint(url: str, *, timeout: float) -> tuple[bool, str]:
+    request = Request(url, method="GET")
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            status_code = getattr(response, "status", 200)
+            return (status_code < 500, f"HTTP {status_code}")
+    except HTTPError as exc:
+        status_ok = exc.code < 500
+        return (status_ok, f"HTTP {exc.code}")
+    except URLError as exc:
+        reason = str(exc.reason) if exc.reason is not None else "connection error"
+        return (False, reason)
 
 
 def _parse_csv_values(raw: str | None) -> set[str]:
@@ -359,23 +402,7 @@ def ctx_list(
     _state(ctx)
     try:
         selected_source = _ctx_source(source)
-        if selected_source == "auth":
-            config = load_auth_config()
-            contexts = [
-                StoredContext(
-                    name=item.name,
-                    endpoint=item.endpoint,
-                    username=item.auth.username,
-                    password=item.auth.password,
-                    version=item.version,
-                )
-                for item in (config.contexts if config else ())
-            ]
-            active_name = config.current_context if config else None
-        else:
-            store = StateStore()
-            contexts = store.list_contexts()
-            active_name = store.active_context_name()
+        contexts, active_name = _contexts_for_source(selected_source)
         if not contexts:
             typer.echo("No contexts found.")
             return
@@ -386,6 +413,98 @@ def ctx_list(
                 f"- {context.name}{suffix}: endpoint={context.endpoint}, "
                 f"user={context.username}{version}"
             )
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@ctx_app.command("validate")
+def ctx_validate(
+    ctx: typer.Context,
+    source: str = typer.Option(
+        "auto",
+        "--source",
+        help="Context backend source: auto|auth|db",
+    ),
+    all_contexts: bool = typer.Option(False, "--all", help="Validate all contexts."),
+    context: str | None = typer.Option(None, "--context", help="Validate a specific context name."),
+    timeout: float = typer.Option(5.0, "--timeout", help="Per-endpoint timeout in seconds."),
+) -> None:
+    """Validate endpoint reachability for one or more contexts."""
+
+    _state(ctx)
+    try:
+        selected_source = _ctx_source(source)
+        contexts, active_name = _contexts_for_source(selected_source)
+        if not contexts:
+            typer.echo("No contexts found.")
+            return
+
+        selected_contexts = contexts
+        if context:
+            selected_contexts = [item for item in contexts if item.name == context]
+            if not selected_contexts:
+                raise typer.BadParameter(
+                    f"Context '{context}' was not found in {selected_source} source."
+                )
+        elif not all_contexts:
+            selected_contexts = [item for item in contexts if item.name == active_name]
+            if not selected_contexts:
+                raise typer.BadParameter(
+                    "No active context is set. "
+                    "Use `one state ctx use <name>` or pass --all/--context."
+                )
+
+        total = 0
+        passed = 0
+        for item in selected_contexts:
+            typer.echo(f"Context: {item.name}")
+            endpoint_overrides = (
+                _auth_context_endpoints(item.name) if selected_source == "auth" else {}
+            )
+            endpoints: list[tuple[str, str | None]] = [
+                ("xmlrpc", item.endpoint),
+                (
+                    "oneflow",
+                    derive_service_endpoint(
+                        item.endpoint,
+                        service="oneflow",
+                        explicit=endpoint_overrides.get("oneflow"),
+                    ),
+                ),
+                (
+                    "firestone",
+                    derive_service_endpoint(
+                        item.endpoint,
+                        service="firestone",
+                        explicit=endpoint_overrides.get("firestone"),
+                    ),
+                ),
+                (
+                    "web",
+                    derive_service_endpoint(
+                        item.endpoint,
+                        service="web",
+                        explicit=endpoint_overrides.get("web"),
+                    ),
+                ),
+            ]
+
+            for label, endpoint_url in endpoints:
+                total += 1
+                typer.echo(f"  checking {label}: {endpoint_url}")
+                if endpoint_url is None:
+                    typer.echo("    FAIL  unable to resolve endpoint")
+                    continue
+                ok, detail = _check_endpoint(endpoint_url, timeout=timeout)
+                if ok:
+                    passed += 1
+                    typer.echo(f"    PASS  {detail}")
+                else:
+                    typer.echo(f"    FAIL  {detail}")
+
+        typer.echo(f"Validation complete: {passed}/{total} checks passed")
+    except ConnectionError as exc:
+        raise_cli_error(exc)
     except Exception as exc:
         raise_cli_error(exc)
 

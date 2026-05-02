@@ -127,6 +127,7 @@ one state ctx use staging
 one state ctx get
 one state ctx list
 one state ctx show staging
+one state ctx validate
 one state lock enable --actions=all --commands=vm
 one state lock disable
 ```
@@ -137,6 +138,9 @@ Context list source control:
 one state ctx list --source auto
 one state ctx list --source auth
 one state ctx list --source db
+one state ctx validate --source auto
+one state ctx validate --all
+one state ctx validate --context staging --timeout 5
 ```
 
 When auth config is active, `one state ctx use <name>` validates that the context
