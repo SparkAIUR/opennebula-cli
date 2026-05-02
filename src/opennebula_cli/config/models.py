@@ -20,6 +20,8 @@ class ConnectionSettings(BaseModel):
     timeout: float = 60.0
     verify_ssl: bool = True
     cert_dir: str | None = None
+    service_endpoints: dict[str, str] = Field(default_factory=dict)
+    service_config: dict[str, str] = Field(default_factory=dict)
 
 
 class OutputSettings(BaseModel):

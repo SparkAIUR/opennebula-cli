@@ -133,6 +133,9 @@ class OneFlowService:
             "Accept": "application/json",
             "Authorization": f"Basic {self._basic_auth_token()}",
         }
+        oneflow_host = self._config.connection.service_config.get("oneflow_host")
+        if oneflow_host:
+            headers["Host"] = oneflow_host
         if payload is not None:
             headers["Content-Type"] = "application/json"
 
@@ -164,13 +167,14 @@ class OneFlowService:
         explicit = options.get("server") or options.get("s")
         if explicit:
             return str(explicit).rstrip("/")
+        derived = self._config.connection.service_endpoints.get("oneflow")
+        if derived:
+            return derived.rstrip("/")
         endpoint = self._config.connection.endpoint
         parsed_endpoint = urlparse(endpoint)
         if parsed_endpoint.scheme not in {"http", "https"} or not parsed_endpoint.hostname:
             raise ApiError(f"Unable to derive OneFlow endpoint from ONE_XMLRPC: {endpoint}")
-        hostname = parsed_endpoint.hostname
-        netloc = f"{hostname}:2474"
-        return f"{parsed_endpoint.scheme}://{netloc}".rstrip("/")
+        return f"{parsed_endpoint.scheme}://{parsed_endpoint.hostname}:2474".rstrip("/")
 
     def _build_url(self, base_url: str, path: str, query: Mapping[str, str] | None) -> str:
         parsed = urlparse(f"{base_url.rstrip('/')}/{path.lstrip('/')}")

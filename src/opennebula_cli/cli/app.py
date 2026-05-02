@@ -1,9 +1,12 @@
 """Typer application entrypoint."""
 
+import sys
+
 import click
 import typer
 
 from opennebula_cli.cli.agents_guide import AGENTS_GUIDE
+from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.resources import (
     acct,
     acl,
@@ -25,6 +28,7 @@ from opennebula_cli.cli.resources import (
     raw,
     secgroup,
     showback,
+    state,
     swap,
     template,
     user,
@@ -38,6 +42,7 @@ from opennebula_cli.cli.resources import (
     zone,
 )
 from opennebula_cli.cli.state import build_app_state
+from opennebula_cli.lock_enforcer import ensure_command_allowed
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -74,6 +79,7 @@ app.add_typer(swap.app, name="swap")
 app.add_typer(showback.app, name="showback")
 app.add_typer(acct.app, name="acct")
 app.add_typer(gather.app, name="gather")
+app.add_typer(state.app, name="state")
 app.add_typer(workflow.app, name="workflow")
 app.add_typer(raw.app, name="raw")
 
@@ -105,6 +111,13 @@ def root_callback(
     ctx = click.get_current_context()
     if ctx.resilient_parsing:
         return
+    try:
+        invocation_args = list(sys.argv[1:])
+        if not invocation_args and ctx.invoked_subcommand:
+            invocation_args = [str(ctx.invoked_subcommand), *list(ctx.args)]
+        ensure_command_allowed(invocation_args)
+    except Exception as exc:
+        raise_cli_error(exc)
     ctx.obj = build_app_state(
         profile=profile,
         endpoint=endpoint,

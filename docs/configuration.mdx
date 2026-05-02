@@ -19,6 +19,14 @@ Supported environment variables:
 - `ONE_LISTCONF`
 - `ONE_CERT_DIR`
 - `ONE_DISABLE_SSL_VERIFY`
+- `OPENNEBULA_CLI_STATE_DB`
+- `OPENNEBULA_CLI_STATE_DIR`
+- `OPENNEBULA_CLI_AUTH_CONFIG`
+
+State and context defaults:
+
+- state DB: `${OPENNEBULA_CLI_STATE_DB}` or `${OPENNEBULA_CLI_STATE_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/opennebula-cli}/state.db`
+- auth context file: `${OPENNEBULA_CLI_AUTH_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/opennebula-cli/auth.yaml}`
 
 ## Profiles
 
@@ -62,11 +70,93 @@ Default fallback:
 
 - `~/.one/one_auth`
 
+Context-aware override:
+
+- if `OPENNEBULA_CLI_AUTH_CONFIG` points to a valid `auth.yaml` file, the selected `current_context`
+  overrides `ONE_XMLRPC` and `ONE_AUTH`
+- if no `auth.yaml` context is available, the CLI falls back to the active context in the state DB (`one state ctx use ...`)
+
+Service endpoint behavior:
+
+- base `endpoint` typically points at XML-RPC (`:2633/RPC2`)
+- service URLs auto-derive from the same host when not explicitly set:
+  - `web` -> `:9869`
+  - `firestone` (Sunstone API) -> `:2616`
+  - `oneflow` -> `:2474`
+- explicit `endpoints.*` values take precedence over derived ports
+- optional `config` keys can tune behavior for service adapters (for example `oneflow_host` for Host header override)
+
+Example `auth.yaml`:
+
+```yaml
+current_context: staging
+contexts:
+  - name: staging
+    endpoint: https://staging.opennebula.example.com/RPC2
+    version: v7.0.2
+    endpoints:
+      web: https://staging.opennebula.example.com:9869
+      firestone: https://staging.opennebula.example.com:2616
+      oneflow: https://staging.opennebula.example.com:2474
+    config:
+      oneflow_host: localhost
+    auth:
+      username: user1
+      password: pass1
+  - name: production
+    endpoint: https://prod.opennebula.example.com/RPC2
+    version: v7.0.2
+    auth:
+      username: user2
+      password: pass2
+```
+
 Recommended for automation:
 
 - keep secrets in an auth file
 - export `ONE_AUTH` to that file path
 - avoid inline secrets in shell history and CI logs
+
+## Local state commands
+
+Use local state management for contexts and lock policy:
+
+```bash
+one state ctx set
+one state ctx use staging
+one state lock enable --actions=all --commands=vm
+one state lock disable
+```
+
+Lock checks are local-only and enforced before command execution.
+
+## Lock recovery and safeguards
+
+If you forget a lock password, you can recover safely without touching OpenNebula resources.
+
+Inspect DB path first:
+
+```bash
+echo "${OPENNEBULA_CLI_STATE_DB:-${OPENNEBULA_CLI_STATE_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/opennebula-cli}/state.db}"
+```
+
+Remove lock rows only (recommended):
+
+```bash
+sqlite3 /path/to/state.db <<'SQL'
+UPDATE lock_state SET enabled = 0, password_salt = NULL, password_hash = NULL WHERE id = 1;
+DELETE FROM lock_actions;
+DELETE FROM lock_commands;
+SQL
+```
+
+Full state reset (removes contexts and lock policy):
+
+```bash
+rm /path/to/state.db
+```
+
+Use full reset only when necessary. Prefer targeted lock-row cleanup to preserve saved contexts.
 
 ## TLS and certificates
 

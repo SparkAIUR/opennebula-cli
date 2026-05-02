@@ -45,7 +45,11 @@ class FakeUrlOpen:
         return FakeResponse(payload)
 
 
-def _config(endpoint: str = "http://frontend:2633/RPC2") -> ResolvedConfig:
+def _config(
+    endpoint: str = "http://frontend:2633/RPC2",
+    *,
+    service_config: dict[str, str] | None = None,
+) -> ResolvedConfig:
     return ResolvedConfig(
         profile=None,
         connection=ConnectionSettings(
@@ -53,6 +57,7 @@ def _config(endpoint: str = "http://frontend:2633/RPC2") -> ResolvedConfig:
             timeout=30.0,
             verify_ssl=True,
             cert_dir=None,
+            service_config=service_config or {},
         ),
         auth=ResolvedAuth(
             username="oneadmin",
@@ -124,3 +129,14 @@ def test_flow_template_chgrp_sends_action_params(monkeypatch: Any) -> None:
     assert fake.calls[0]["url"] == "http://flow.example:2474/service_template/8/action"
     payload = json.loads((fake.calls[0]["data"] or b"{}").decode("utf-8"))
     assert payload == {"action": {"perform": "chgrp", "params": {"group_id": 3}}}
+
+
+def test_flow_template_uses_oneflow_host_header_from_context_config(monkeypatch: Any) -> None:
+    fake = FakeUrlOpen([json.dumps({"DOCUMENT_POOL": {"DOCUMENT": []}}).encode("utf-8")])
+    monkeypatch.setattr("opennebula_cli.services.flow_template.urlopen", fake)
+
+    service = OneFlowTemplateService(_config(service_config={"oneflow_host": "localhost"}))
+    service.run_official("list", [])
+
+    assert fake.calls
+    assert fake.calls[0]["headers"]["Host"] == "localhost"

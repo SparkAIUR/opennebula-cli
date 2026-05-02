@@ -203,6 +203,9 @@ class OneFlowTemplateService:
             "Accept": "application/json",
             "Authorization": f"Basic {self._basic_auth_token()}",
         }
+        oneflow_host = self._config.connection.service_config.get("oneflow_host")
+        if oneflow_host:
+            headers["Host"] = oneflow_host
         if payload is not None:
             headers["Content-Type"] = "application/json"
 
@@ -237,6 +240,9 @@ class OneFlowTemplateService:
         explicit = parsed.options.get("server") or parsed.options.get("s")
         if explicit:
             return str(explicit).rstrip("/")
+        derived = self._config.connection.service_endpoints.get("oneflow")
+        if derived:
+            return derived.rstrip("/")
         endpoint = self._config.connection.endpoint
         parsed_endpoint = urlparse(endpoint)
         if parsed_endpoint.scheme not in {"http", "https"} or not parsed_endpoint.hostname:

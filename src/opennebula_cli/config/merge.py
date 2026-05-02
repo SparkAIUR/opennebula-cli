@@ -5,8 +5,10 @@ from __future__ import annotations
 import os
 from typing import cast
 
+from opennebula_cli.auth.context_config import load_auth_config
 from opennebula_cli.auth.resolver import resolve_auth
 from opennebula_cli.config.defaults import default_auth_path
+from opennebula_cli.config.endpoints import SERVICE_PORTS, derive_service_endpoint
 from opennebula_cli.config.models import (
     ConnectionSettings,
     OutputMode,
@@ -15,6 +17,7 @@ from opennebula_cli.config.models import (
     ResolvedConfig,
 )
 from opennebula_cli.sdk.exceptions import ConnectionError
+from opennebula_cli.state_store import StateStore
 
 
 def _env_bool(name: str) -> bool | None:
@@ -29,6 +32,39 @@ def _pick(*values: object) -> object | None:
         if value is not None:
             return value
     return None
+
+
+def _resolve_contextual_credentials() -> tuple[
+    str | None,
+    str | None,
+    str | None,
+    dict[str, str],
+    dict[str, str],
+]:
+    """Resolve endpoint and auth from auth.yaml or state DB contexts."""
+
+    auth_config = load_auth_config()
+    if auth_config is not None:
+        current = auth_config.resolve_current()
+        if current is not None:
+            return (
+                current.endpoint,
+                f"literal:{current.auth.username}:{current.auth.password}",
+                f"auth-config:{current.name}",
+                dict(current.endpoints or {}),
+                dict(current.config or {}),
+            )
+
+    context = StateStore().get_active_context()
+    if context is not None:
+        return (
+            context.endpoint,
+            f"literal:{context.username}:{context.password}",
+            f"state-context:{context.name}",
+            {},
+            {},
+        )
+    return (None, None, None, {}, {})
 
 
 def merge_runtime_config(
@@ -50,7 +86,15 @@ def merge_runtime_config(
     """Merge CLI, profile, env, and defaults into a resolved config."""
 
     active_profile = profile or ProfileConfig()
-    endpoint = _pick(cli_endpoint, active_profile.endpoint, os.getenv("ONE_XMLRPC"))
+    context_endpoint, context_auth, context_source, context_service_endpoints, context_config = (
+        _resolve_contextual_credentials()
+    )
+    endpoint = _pick(
+        cli_endpoint,
+        active_profile.endpoint,
+        context_endpoint,
+        os.getenv("ONE_XMLRPC"),
+    )
     if endpoint is None:
         raise ConnectionError(
             "No OpenNebula endpoint resolved. Use --endpoint, ONE_XMLRPC, or a profile."
@@ -85,6 +129,8 @@ def merge_runtime_config(
         cli_user=cli_user,
         cli_password=cli_password,
         profile_auth=active_profile.auth,
+        context_auth=context_auth,
+        context_source=context_source,
         env_auth=os.getenv("ONE_AUTH"),
         default_auth_path=default_auth_path(),
     )
@@ -93,6 +139,15 @@ def merge_runtime_config(
         timeout=float(cast(float | str, timeout_value)),
         verify_ssl=bool(verify_ssl),
         cert_dir=str(cert_dir) if cert_dir else None,
+        service_endpoints={
+            service: derive_service_endpoint(
+                str(endpoint),
+                service=service,
+                explicit=context_service_endpoints.get(service),
+            )
+            for service in SERVICE_PORTS
+        },
+        service_config=context_config,
     )
     return ResolvedConfig(
         profile=profile_name,
