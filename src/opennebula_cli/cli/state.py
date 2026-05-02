@@ -59,11 +59,18 @@ class AppState:
             self._client = OneClient.from_config(self.resolve_config())
         return self._client
 
-    def render(self, data: object, *, resource: str | None = None) -> None:
+    def render(
+        self,
+        data: object,
+        *,
+        resource: str | None = None,
+        output_override: str | None = None,
+    ) -> None:
         """Render command output with the configured renderer."""
 
         config = self.resolve_config()
-        output = "table" if config.output.output == "human" else config.output.output
+        selected_output = (output_override or config.output.output).lower()
+        output = "table" if selected_output == "human" else selected_output
         interactive = output == "table"
         console = Console(
             force_terminal=interactive,

@@ -56,13 +56,18 @@ def show_vm(
     ctx: typer.Context,
     vm_id: int,
     full: bool = typer.Option(False, "--full", help="Return lossless normalized backend data."),
+    output: str | None = typer.Option(
+        None,
+        "--output",
+        help="Override output format for this command: table|json|yaml|xml|csv|raw",
+    ),
 ) -> None:
     """Show a VM."""
 
     state = _state(ctx)
     try:
         result = state.client().vm.show_full(vm_id) if full else state.client().vm.show(vm_id)
-        state.render(result, resource="vm")
+        state.render(result, resource="vm", output_override=output)
     except Exception as exc:
         raise_cli_error(exc)
 

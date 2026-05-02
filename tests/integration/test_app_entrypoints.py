@@ -85,6 +85,12 @@ def test_vm_wait_rejects_invalid_duration_before_config_resolution() -> None:
     assert "Duration must be seconds" in result.output
 
 
+def test_vm_show_accepts_trailing_output_option() -> None:
+    result = runner.invoke(app, ["vm", "show", "42", "--output", "json"])
+    assert result.exit_code == 0
+    assert '"id": 42' in result.stdout
+
+
 def test_raw_args_loader_accepts_file_and_inline_json(tmp_path: Path) -> None:
     args_file = tmp_path / "args.json"
     args_file.write_text('[42, {"extended": true}]', encoding="utf-8")
