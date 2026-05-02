@@ -16,6 +16,13 @@ COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
 app = typer.Typer(no_args_is_help=True, help="Manage OneFlow service templates.")
 
 
+def _describe_flow_template_command(command_name: str) -> str:
+    return (
+        "Execute `flow-template "
+        f"{command_name}` using official-style arguments and the OneFlow template adapter."
+    )
+
+
 
 def _state(ctx: typer.Context) -> AppState:
     return cast(AppState, ctx.obj)
@@ -24,7 +31,7 @@ def _state(ctx: typer.Context) -> AppState:
 
 def _make_official_command(command_name: str) -> Any:
     def official_command(ctx: typer.Context) -> None:
-        """Run an official oneflow-template command."""
+        """Execute a OneFlow-template command through the parity REST adapter."""
 
         state = _state(ctx)
         try:
@@ -35,7 +42,7 @@ def _make_official_command(command_name: str) -> Any:
             raise_cli_error(exc)
 
     official_command.__name__ = f"flow_template_{command_name.replace('-', '_')}"
-    official_command.__doc__ = f"Run official `oneflow-template {command_name}` parity command."
+    official_command.__doc__ = _describe_flow_template_command(command_name)
     return official_command
 
 
@@ -55,6 +62,7 @@ for _command_name in [
 ]:
     app.command(
         _command_name,
+        help=_describe_flow_template_command(_command_name),
         context_settings=COMMAND_CONTEXT,
         epilog=command_epilog(
             "flow-template",

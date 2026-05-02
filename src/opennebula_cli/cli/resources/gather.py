@@ -2,4 +2,7 @@
 
 import typer
 
-app = typer.Typer(no_args_is_help=True, help="Manage gather commands.")
+app = typer.Typer(
+    no_args_is_help=True,
+    help="Run data collection and telemetry compatibility commands.",
+)

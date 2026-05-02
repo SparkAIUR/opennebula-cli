@@ -9,7 +9,10 @@ from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.state import AppState
 
-app = typer.Typer(no_args_is_help=True, help="Manage onegate compatibility commands.")
+app = typer.Typer(
+    no_args_is_help=True,
+    help="Access OneGate VM context and metadata compatibility commands.",
+)
 
 
 def _state(ctx: typer.Context) -> AppState:

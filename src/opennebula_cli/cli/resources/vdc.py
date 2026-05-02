@@ -4,7 +4,10 @@ import typer
 
 from opennebula_cli.cli.resources.official import register_official_commands
 
-app = typer.Typer(no_args_is_help=True, help="Manage VDC resources.")
+app = typer.Typer(
+    no_args_is_help=True,
+    help="Manage Virtual Data Center resources through compatibility commands.",
+)
 
 register_official_commands(
     app,
