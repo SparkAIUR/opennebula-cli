@@ -77,6 +77,15 @@ def _use_auth_config_contexts() -> bool:
     return has_auth_config_file() or bool(os.getenv("OPENNEBULA_CLI_AUTH_CONFIG"))
 
 
+def _ctx_source(use_source: str) -> str:
+    normalized = use_source.strip().lower()
+    if normalized not in {"auto", "auth", "db"}:
+        raise typer.BadParameter("--source must be one of: auto, auth, db")
+    if normalized == "auto":
+        return "auth" if _use_auth_config_contexts() else "db"
+    return normalized
+
+
 def _parse_csv_values(raw: str | None) -> set[str]:
     if raw is None:
         return set()
@@ -337,12 +346,20 @@ def ctx_get(ctx: typer.Context) -> None:
 
 
 @ctx_app.command("list")
-def ctx_list(ctx: typer.Context) -> None:
+def ctx_list(
+    ctx: typer.Context,
+    source: str = typer.Option(
+        "auto",
+        "--source",
+        help="Context backend source: auto|auth|db",
+    ),
+) -> None:
     """List all stored contexts."""
 
     _state(ctx)
     try:
-        if _use_auth_config_contexts():
+        selected_source = _ctx_source(source)
+        if selected_source == "auth":
             config = load_auth_config()
             contexts = [
                 StoredContext(

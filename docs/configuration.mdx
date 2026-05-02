@@ -131,6 +131,17 @@ one state lock enable --actions=all --commands=vm
 one state lock disable
 ```
 
+Context list source control:
+
+```bash
+one state ctx list --source auto
+one state ctx list --source auth
+one state ctx list --source db
+```
+
+When auth config is active, `one state ctx use <name>` validates that the context
+exists in `OPENNEBULA_CLI_AUTH_CONFIG` and then updates `current_context: <name>`.
+
 Lock checks are local-only and enforced before command execution.
 
 ## Lock recovery and safeguards

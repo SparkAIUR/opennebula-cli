@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
 from typer.testing import CliRunner
 
 from opennebula_cli.cli.app import app
@@ -40,9 +41,34 @@ def test_state_ctx_set_and_use(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "Context 'staging' set successfully" in result.stdout
 
+    result_prod = runner.invoke(
+        app,
+        [
+            "state",
+            "ctx",
+            "set",
+            "--name",
+            "production",
+            "--endpoint",
+            "https://prod.example.com/RPC2",
+            "--user",
+            "user2",
+            "--password",
+            "pass2",
+            "--version",
+            "v7.0.2",
+        ],
+        env=env,
+    )
+    assert result_prod.exit_code == 0
+
     use_result = runner.invoke(app, ["state", "ctx", "use", "staging"], env=env)
     assert use_result.exit_code == 0
     assert "Context switched to 'staging'" in use_result.stdout
+
+    auth_config = Path(env["OPENNEBULA_CLI_AUTH_CONFIG"])
+    payload = yaml.safe_load(auth_config.read_text(encoding="utf-8"))
+    assert payload["current_context"] == "staging"
 
     get_result = runner.invoke(app, ["state", "ctx", "get"], env=env)
     assert get_result.exit_code == 0
@@ -56,6 +82,18 @@ def test_state_ctx_set_and_use(tmp_path: Path) -> None:
     list_result = runner.invoke(app, ["state", "ctx", "list"], env=env)
     assert list_result.exit_code == 0
     assert "- staging (active): endpoint=https://staging.example.com/RPC2" in list_result.stdout
+
+    list_auth_result = runner.invoke(app, ["state", "ctx", "list", "--source", "auth"], env=env)
+    assert list_auth_result.exit_code == 0
+    assert "- production: endpoint=https://prod.example.com/RPC2" in list_auth_result.stdout
+
+    list_db_result = runner.invoke(app, ["state", "ctx", "list", "--source", "db"], env=env)
+    assert list_db_result.exit_code == 0
+    assert "No contexts found." in list_db_result.stdout
+
+    list_invalid = runner.invoke(app, ["state", "ctx", "list", "--source", "nope"], env=env)
+    assert list_invalid.exit_code != 0
+    assert "must be one of: auto, auth, db" in list_invalid.output
 
 
 def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
