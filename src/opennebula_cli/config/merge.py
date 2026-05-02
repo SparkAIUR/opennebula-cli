@@ -10,6 +10,7 @@ from opennebula_cli.auth.resolver import resolve_auth
 from opennebula_cli.config.defaults import default_auth_path
 from opennebula_cli.config.endpoints import SERVICE_PORTS, derive_service_endpoint
 from opennebula_cli.config.models import (
+    ALL_OUTPUT_MODES,
     ConnectionSettings,
     OutputMode,
     OutputSettings,
@@ -113,7 +114,7 @@ def merge_runtime_config(
     )
     cert_dir = _pick(cli_cert_dir, active_profile.cert_dir, os.getenv("ONE_CERT_DIR"))
     output_value = cli_output or active_profile.output or "table"
-    if output_value not in {"table", "json", "yaml", "xml", "csv", "raw", "human", "plain"}:
+    if output_value not in ALL_OUTPUT_MODES:
         output_value = "table"
     no_pager = cli_no_pager or bool(active_profile.no_pager)
     pool_page_size = os.getenv("ONE_POOL_PAGE_SIZE")

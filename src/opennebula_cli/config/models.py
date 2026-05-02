@@ -10,6 +10,11 @@ from opennebula_cli.auth.models import ResolvedAuth
 
 OutputMode = Literal["table", "json", "yaml", "xml", "csv", "raw", "human", "plain"]
 
+CANONICAL_OUTPUT_MODES = ("table", "json", "yaml", "xml", "csv", "raw")
+EXTENDED_OUTPUT_MODES = ("human", "plain")
+ALL_OUTPUT_MODES = (*CANONICAL_OUTPUT_MODES, *EXTENDED_OUTPUT_MODES)
+CANONICAL_OUTPUT_MODE_HELP = "|".join(CANONICAL_OUTPUT_MODES)
+
 
 class ConnectionSettings(BaseModel):
     """Transport-specific connection configuration."""

@@ -1,13 +1,12 @@
 """OneGate compatibility commands."""
 
-from typing import cast
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.resources.official import register_official_commands
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -15,15 +14,12 @@ app = typer.Typer(
 )
 
 
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
-
 
 @app.command("vm-show", epilog=command_epilog("gate", "vm-show", "42 --output json"))
 def vm_show(ctx: typer.Context) -> None:
     """Show VM info through onegate compatibility path."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().gate.run_official("vm-show", list(ctx.args)), resource="vm")
     except Exception as exc:

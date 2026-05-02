@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.official_help_texts import official_command_description
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 
 COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
 
@@ -26,15 +26,12 @@ def _describe_flow_command(command_name: str) -> str:
     )
 
 
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
-
 
 def _make_official_command(command_name: str) -> Any:
     def official_command(ctx: typer.Context) -> None:
         """Execute a OneFlow compatibility command through the REST parity adapter."""
 
-        state = _state(ctx)
+        state = require_state(ctx)
         try:
             result = state.client().flow.run_official(command_name, list(ctx.args))
             state.render(result, resource="flow")

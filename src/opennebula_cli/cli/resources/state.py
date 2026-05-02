@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from typing import cast
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -18,7 +17,7 @@ from opennebula_cli.auth.context_config import (
     upsert_auth_context,
 )
 from opennebula_cli.cli.error_handlers import raise_cli_error
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 from opennebula_cli.config.endpoints import derive_service_endpoint
 from opennebula_cli.sdk.exceptions import ConnectionError
 from opennebula_cli.state_store import LOCK_ACTION_CHOICES, StateStore, StoredContext
@@ -63,9 +62,6 @@ KNOWN_COMMANDS = (
     "raw",
 )
 
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 def _print_context(context: StoredContext, *, active_name: str | None) -> None:
@@ -222,7 +218,7 @@ def lock_enable(
 ) -> None:
     """Enable command lock with action and command filters."""
 
-    _state(ctx)  # keep state callback contract
+    require_state(ctx)  # keep state callback contract
     try:
         selected_actions = _select_actions(actions)
         selected_commands = _select_commands(commands, selected_actions)
@@ -250,7 +246,7 @@ def lock_enable(
 def lock_disable(ctx: typer.Context) -> None:
     """Disable active command lock."""
 
-    _state(ctx)  # keep state callback contract
+    require_state(ctx)  # keep state callback contract
     try:
         store = StateStore()
         current = store.lock_state()
@@ -301,7 +297,7 @@ def ctx_set(
 ) -> None:
     """Create or update a local context and mark it active."""
 
-    _state(ctx)  # keep state callback contract
+    require_state(ctx)  # keep state callback contract
     try:
         target_name = name or typer.prompt("Enter a name for this context")
         target_endpoint = endpoint or typer.prompt("Enter the OpenNebula endpoint URL")
@@ -343,7 +339,7 @@ def ctx_set(
 def ctx_use(ctx: typer.Context, context_name: str) -> None:
     """Switch active context by name."""
 
-    _state(ctx)  # keep state callback contract
+    require_state(ctx)  # keep state callback contract
     try:
         if _use_auth_config_contexts():
             ok = set_auth_current_context(context_name)
@@ -369,7 +365,7 @@ def ctx_use(ctx: typer.Context, context_name: str) -> None:
 def ctx_get(ctx: typer.Context) -> None:
     """Show the currently active context."""
 
-    _state(ctx)
+    require_state(ctx)
     try:
         if _use_auth_config_contexts():
             config = load_auth_config()
@@ -409,7 +405,7 @@ def ctx_list(
 ) -> None:
     """List all stored contexts."""
 
-    _state(ctx)
+    require_state(ctx)
     try:
         selected_source = _ctx_source(source)
         contexts, active_name = _contexts_for_source(selected_source)
@@ -441,7 +437,7 @@ def ctx_validate(
 ) -> None:
     """Validate endpoint reachability for one or more contexts."""
 
-    _state(ctx)
+    require_state(ctx)
     try:
         selected_source = _ctx_source(source)
         contexts, active_name = _contexts_for_source(selected_source)
@@ -523,7 +519,7 @@ def ctx_validate(
 def ctx_show(ctx: typer.Context, context_name: str) -> None:
     """Show details for a named context."""
 
-    _state(ctx)
+    require_state(ctx)
     try:
         if _use_auth_config_contexts():
             config = load_auth_config()

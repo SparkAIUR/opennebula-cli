@@ -4,19 +4,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Annotated, Any, cast
+from typing import Annotated, Any
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 from opennebula_cli.sdk.client import OneClient
 
 app = typer.Typer(no_args_is_help=True, help="Run guarded raw XML-RPC calls.")
 
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 def _load_args(json_args: Path | None, json_args_text: str | None) -> list[Any]:
@@ -71,7 +68,7 @@ def raw_call(
     if not unsafe:
         raise typer.BadParameter("Raw calls require --i-understand-this-is-unsafe.")
     args = _load_args(json_args, json_args_text)
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         raw_client = OneClient.from_config(state.resolve_config(), backend="raw")
         state.render(raw_client.raw.call(method, args), resource="raw")

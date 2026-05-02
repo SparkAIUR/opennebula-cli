@@ -1,19 +1,15 @@
 """User commands."""
 
-from typing import cast
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.resources.official import register_official_commands
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage users.")
 
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 @app.command(
@@ -23,7 +19,7 @@ def _state(ctx: typer.Context) -> AppState:
 def list_users(ctx: typer.Context) -> None:
     """List users."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().user.list(), resource="user")
     except Exception as exc:
@@ -37,7 +33,7 @@ def list_users(ctx: typer.Context) -> None:
 def show_user(ctx: typer.Context, user_id: int) -> None:
     """Show a user."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().user.show(user_id), resource="user")
     except Exception as exc:

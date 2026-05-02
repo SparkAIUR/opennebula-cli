@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.official_help_texts import official_command_description
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 
 COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
 
@@ -48,9 +48,9 @@ def _make_official_command(family: str, command_name: str) -> Any:
     def official_command(ctx: typer.Context) -> None:
         """Execute a captured official command through the parity service layer."""
 
-        state = cast(AppState, ctx.obj)
+        state = require_state(ctx)
         try:
-            service = cast(Any, getattr(state.client(), family))
+            service: Any = getattr(state.client(), family)
             result = service.run_official(command_name, list(ctx.args))
             state.render(result, resource=family)
         except Exception as exc:

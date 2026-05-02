@@ -41,6 +41,7 @@ from opennebula_cli.cli.resources import (
     zone,
 )
 from opennebula_cli.cli.state import build_app_state
+from opennebula_cli.config.models import CANONICAL_OUTPUT_MODE_HELP
 from opennebula_cli.lock_enforcer import ensure_command_allowed
 from opennebula_cli.versioning import app_version, git_hash
 
@@ -130,7 +131,7 @@ def root_callback(
     auth: str | None = typer.Option(None, "--auth", help="Auth value or path"),
     user: str | None = typer.Option(None, "--user", help="Username"),
     password: str | None = typer.Option(None, "--password", prompt=False, hide_input=True),
-    output: str = typer.Option("table", "--output", help="table|json|yaml|xml|csv|raw"),
+    output: str = typer.Option("table", "--output", help=CANONICAL_OUTPUT_MODE_HELP),
     no_pager: bool = typer.Option(False, "--no-pager", help="Disable pager output"),
     timeout: float | None = typer.Option(None, "--timeout", help="Transport timeout in seconds"),
     no_verify: bool = typer.Option(False, "--no-verify", help="Disable TLS verification"),

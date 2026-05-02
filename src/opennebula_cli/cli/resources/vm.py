@@ -7,13 +7,11 @@ import typer
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.resources.official import register_official_commands
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
+from opennebula_cli.config.models import CANONICAL_OUTPUT_MODE_HELP
 
 app = typer.Typer(no_args_is_help=True, help="Manage virtual machines.")
 
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 def _parse_duration(value: str) -> float:
@@ -41,7 +39,7 @@ def _parse_duration(value: str) -> float:
 def list_vms(ctx: typer.Context) -> None:
     """List VMs."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().vm.list(), resource="vm")
     except Exception as exc:
@@ -59,12 +57,12 @@ def show_vm(
     output: str | None = typer.Option(
         None,
         "--output",
-        help="Override output format for this command: table|json|yaml|xml|csv|raw",
+        help=f"Override output format for this command: {CANONICAL_OUTPUT_MODE_HELP}",
     ),
 ) -> None:
     """Show a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = state.client().vm.show_full(vm_id) if full else state.client().vm.show(vm_id)
         state.render(result, resource="vm", output_override=output)
@@ -79,7 +77,7 @@ def show_vm(
 def disk_list_vm(ctx: typer.Context, vm_id: int) -> None:
     """List disks attached to a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().vm.disk_list(vm_id), resource="vm-disk")
     except Exception as exc:
@@ -113,7 +111,7 @@ def disk_attach_vm(
 ) -> None:
     """Attach an image as a VM disk."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = state.client().vm.disk_attach(
             vm_id,
@@ -145,7 +143,7 @@ def disk_detach_vm(
 ) -> None:
     """Detach a disk from a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().vm.disk_detach(vm_id, disk_id=disk_id), resource="vm")
     except Exception as exc:
@@ -190,7 +188,7 @@ def recover_vm(
         raise typer.BadParameter(
             "Select exactly one of --success, --failure, --retry, or --delete."
         )
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         operation = cast(Literal["success", "failure", "retry", "delete"], selected[0])
         result = state.client().vm.recover(vm_id, operation)
@@ -211,7 +209,7 @@ def recover_vm(
 def reboot_vm(ctx: typer.Context, vm_id: int) -> None:
     """Reboot a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().vm.action(vm_id, "reboot"), resource="vm")
     except Exception as exc:
@@ -230,7 +228,7 @@ def reboot_vm(ctx: typer.Context, vm_id: int) -> None:
 def reboot_hard_vm(ctx: typer.Context, vm_id: int) -> None:
     """Hard reboot a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().vm.action(vm_id, "reboot-hard"), resource="vm")
     except Exception as exc:
@@ -249,7 +247,7 @@ def reboot_hard_vm(ctx: typer.Context, vm_id: int) -> None:
 def resume_vm(ctx: typer.Context, vm_id: int) -> None:
     """Resume a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().vm.action(vm_id, "resume"), resource="vm")
     except Exception as exc:
@@ -276,7 +274,7 @@ def wait_vm(
     """Wait for a VM state."""
 
     parsed_timeout = _parse_duration(timeout)
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = state.client().vm.wait_state(
             vm_id,
@@ -316,7 +314,7 @@ def poweroff_vm(
 ) -> None:
     """Power off a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = state.client().vm.poweroff(
             vm_id,
@@ -354,7 +352,7 @@ def poweroff_hard_vm(
 ) -> None:
     """Hard power off a VM."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = state.client().vm.poweroff(
             vm_id,

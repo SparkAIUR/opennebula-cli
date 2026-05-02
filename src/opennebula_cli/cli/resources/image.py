@@ -1,19 +1,15 @@
 """Image commands."""
 
-from typing import cast
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
 from opennebula_cli.cli.resources.official import register_official_commands
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage images.")
 
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 @app.command(
@@ -23,7 +19,7 @@ def _state(ctx: typer.Context) -> AppState:
 def list_images(ctx: typer.Context) -> None:
     """List images."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().image.list(), resource="image")
     except Exception as exc:
@@ -41,7 +37,7 @@ def show_image(
 ) -> None:
     """Show an image."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = (
             state.client().image.show_full(image_id)
@@ -60,7 +56,7 @@ def show_image(
 def image_owner(ctx: typer.Context, image_id: int) -> None:
     """Summarize image VM ownership for recovery triage."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().image.owner(image_id), resource="image-owner")
     except Exception as exc:
@@ -80,7 +76,7 @@ def image_owner(ctx: typer.Context, image_id: int) -> None:
 def delete_image(ctx: typer.Context, image_id: int) -> None:
     """Delete an image."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().image.delete(image_id), resource="image")
     except Exception as exc:
