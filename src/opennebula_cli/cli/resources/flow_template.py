@@ -8,6 +8,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.official_help_texts import official_command_description
 from opennebula_cli.cli.state import AppState
 from opennebula_cli.services.flow_template import OneFlowTemplateService
 
@@ -17,6 +18,9 @@ app = typer.Typer(no_args_is_help=True, help="Manage OneFlow service templates."
 
 
 def _describe_flow_template_command(command_name: str) -> str:
+    official = official_command_description("flow-template", command_name)
+    if official:
+        return official
     return (
         "Execute `flow-template "
         f"{command_name}` using official-style arguments and the OneFlow template adapter."

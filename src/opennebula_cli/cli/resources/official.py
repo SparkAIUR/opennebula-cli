@@ -8,6 +8,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.official_help_texts import official_command_description
 from opennebula_cli.cli.state import AppState
 
 COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
@@ -16,6 +17,9 @@ COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
 def _describe_official_command(family: str, command_name: str) -> str:
     """Build a descriptive help line for an official parity command."""
 
+    official = official_command_description(family, command_name)
+    if official:
+        return official
     normalized = command_name.replace("-", " ")
     return (
         f"Execute `{family} {command_name}` with official-style arguments and options. "
