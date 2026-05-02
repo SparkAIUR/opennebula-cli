@@ -68,7 +68,9 @@ Global options are handled by the root application:
 - `--verbose`
 - `--debug`
 
-They must appear before the resource verb.
+Prefer placing them before the resource verb.
+
+This is required for most commands. Selected commands may provide local convenience overrides. For example, `one vm show 42 --output json` is supported.
 
 Resource options stay on the subcommand itself:
 
@@ -97,7 +99,7 @@ Guidance:
 
 - use `table` for interactive operator sessions
 - use `json`, `yaml`, `csv`, or `raw` for automation
-- keep `--output` at the root position
+- prefer `--output` at the root position for consistency
 
 ## Wait behavior
 

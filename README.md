@@ -83,7 +83,7 @@ onevm --output json list
 onecluster --profile prod show 0
 ```
 
-Global options such as `--output`, `--profile`, `--endpoint`, and `--auth` belong before the resource verb on the canonical CLI and before the verb on compatibility wrappers.
+Global options such as `--output`, `--profile`, `--endpoint`, and `--auth` should be placed before the resource verb on the canonical CLI and before the verb on compatibility wrappers. Most commands require this ordering. Selected commands may expose command-local convenience overrides, such as `one vm show --output json`.
 
 ## Quick examples
 
@@ -352,6 +352,14 @@ uv run mypy src tests tools
 uv run pytest
 uv run python tools/check_catalog_schema.py
 uv build
+```
+
+If you use [`just`](https://github.com/casey/just), an equivalent workflow is:
+
+```bash
+just check
+just build
+just release-preflight v7.0.2
 ```
 
 ## License

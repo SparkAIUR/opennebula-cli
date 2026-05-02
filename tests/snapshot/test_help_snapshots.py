@@ -1,10 +1,7 @@
 import re
 
-from typer.testing import CliRunner
-
 from opennebula_cli.cli.app import app
 
-runner = CliRunner()
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*m")
 
 
@@ -48,7 +45,7 @@ IMPLEMENTED_SUBCOMMANDS = [
 ]
 
 
-def test_help_snapshots_cover_examples() -> None:
+def test_help_snapshots_cover_examples(runner) -> None:
     for command_parts, expect_compat in IMPLEMENTED_SUBCOMMANDS:
         result = runner.invoke(app, [*command_parts, "--help"])
         output = ANSI_ESCAPE_PATTERN.sub("", result.stdout)

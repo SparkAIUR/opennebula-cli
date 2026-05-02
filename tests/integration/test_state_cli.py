@@ -3,22 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from typer.testing import CliRunner
 
 from opennebula_cli.cli.app import app
 
-runner = CliRunner()
 
-
-def _env(tmp_path: Path) -> dict[str, str]:
-    return {
-        "OPENNEBULA_CLI_STATE_DB": str(tmp_path / "state.db"),
-        "OPENNEBULA_CLI_AUTH_CONFIG": str(tmp_path / "missing-auth.yaml"),
-    }
-
-
-def test_state_ctx_set_and_use(tmp_path: Path) -> None:
-    env = _env(tmp_path)
+def test_state_ctx_set_and_use(runner, state_env: dict[str, str]) -> None:
+    env = state_env
     result = runner.invoke(
         app,
         [
@@ -96,8 +86,8 @@ def test_state_ctx_set_and_use(tmp_path: Path) -> None:
     assert "must be one of: auto, auth, db" in list_invalid.output
 
 
-def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
-    env = _env(tmp_path)
+def test_state_lock_enable_blocks_command_then_disable(runner, state_env: dict[str, str]) -> None:
+    env = state_env
     enable = runner.invoke(
         app,
         [
@@ -132,9 +122,10 @@ def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
 
 
 def test_state_lock_enable_delete_without_commands_blocks_delete_across_commands(
-    tmp_path: Path,
+    runner,
+    state_env: dict[str, str],
 ) -> None:
-    env = _env(tmp_path)
+    env = state_env
     enable = runner.invoke(
         app,
         [
@@ -168,14 +159,14 @@ def test_state_lock_enable_delete_without_commands_blocks_delete_across_commands
     assert "Lock disabled successfully" in disable.stdout
 
 
-def test_state_ctx_use_missing_context_errors(tmp_path: Path) -> None:
-    result = runner.invoke(app, ["state", "ctx", "use", "missing"], env=_env(tmp_path))
+def test_state_ctx_use_missing_context_errors(runner, state_env: dict[str, str]) -> None:
+    result = runner.invoke(app, ["state", "ctx", "use", "missing"], env=state_env)
     assert result.exit_code != 0
     assert "was not found in auth config" in result.output
 
 
-def test_state_ctx_get_and_list_without_contexts(tmp_path: Path) -> None:
-    env = _env(tmp_path)
+def test_state_ctx_get_and_list_without_contexts(runner, state_env: dict[str, str]) -> None:
+    env = state_env
 
     get_result = runner.invoke(app, ["state", "ctx", "get"], env=env)
     assert get_result.exit_code == 0
@@ -186,18 +177,19 @@ def test_state_ctx_get_and_list_without_contexts(tmp_path: Path) -> None:
     assert "No contexts found." in list_result.stdout
 
 
-def test_state_ctx_show_missing_context_errors(tmp_path: Path) -> None:
-    env = _env(tmp_path)
+def test_state_ctx_show_missing_context_errors(runner, state_env: dict[str, str]) -> None:
+    env = state_env
     result = runner.invoke(app, ["state", "ctx", "show", "missing"], env=env)
     assert result.exit_code != 0
     assert "was not found in auth config" in result.output
 
 
 def test_state_ctx_validate_checks_endpoints_and_prints_progress(
-    tmp_path: Path,
+    runner,
+    state_env: dict[str, str],
     monkeypatch,
 ) -> None:
-    env = _env(tmp_path)
+    env = state_env
     setup = runner.invoke(
         app,
         [
@@ -233,8 +225,12 @@ def test_state_ctx_validate_checks_endpoints_and_prints_progress(
     assert "Validation complete: 4/4 checks passed" in result.stdout
 
 
-def test_state_ctx_validate_all_contexts(tmp_path: Path, monkeypatch) -> None:
-    env = _env(tmp_path)
+def test_state_ctx_validate_all_contexts(
+    runner,
+    state_env: dict[str, str],
+    monkeypatch,
+) -> None:
+    env = state_env
     for name in ("staging", "prod"):
         result = runner.invoke(
             app,

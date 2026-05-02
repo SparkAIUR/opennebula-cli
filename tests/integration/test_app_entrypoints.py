@@ -1,20 +1,16 @@
 from pathlib import Path
 
-from typer.testing import CliRunner
-
 from opennebula_cli.cli.app import app
 from opennebula_cli.cli.resources.raw import _load_args
 
-runner = CliRunner()
 
-
-def test_template_help() -> None:
+def test_template_help(runner) -> None:
     result = runner.invoke(app, ["template", "--help"])
     assert result.exit_code == 0
     assert "Manage VM templates" in result.stdout
 
 
-def test_wave2_group_help() -> None:
+def test_wave2_group_help(runner) -> None:
     for family, expected in (
         ("vnet", "Manage virtual networks"),
         ("datastore", "Manage datastores"),
@@ -25,7 +21,7 @@ def test_wave2_group_help() -> None:
         assert expected in result.stdout
 
 
-def test_workflow_group_help() -> None:
+def test_workflow_group_help(runner) -> None:
     result = runner.invoke(app, ["workflow", "--help"])
     assert result.exit_code == 0
     assert "Manage workflow automation commands" in result.stdout
@@ -39,7 +35,7 @@ def test_workflow_group_help() -> None:
     assert "Initialize VMs from workflow definitions" in vm_result.stdout
 
 
-def test_raw_group_help() -> None:
+def test_raw_group_help(runner) -> None:
     result = runner.invoke(app, ["raw", "--help"])
     assert result.exit_code == 0
     assert "Run guarded raw XML-RPC calls" in result.stdout
@@ -49,21 +45,21 @@ def test_raw_group_help() -> None:
     assert "i-understand-this-is-unsafe" in call_result.stdout
 
 
-def test_agents_command_prints_markdown_guide() -> None:
+def test_agents_command_prints_markdown_guide(runner) -> None:
     result = runner.invoke(app, ["agents"])
     assert result.exit_code == 0
     assert "# opennebula-cli Agent Guide" in result.stdout
     assert "opennebula vm" in result.stdout
 
 
-def test_version_command_prints_app_version_and_git_hash() -> None:
+def test_version_command_prints_app_version_and_git_hash(runner) -> None:
     result = runner.invoke(app, ["version"])
     assert result.exit_code == 0
     assert "opennebula-cli version:" in result.stdout
     assert "opennebula-cli git hash:" in result.stdout
 
 
-def test_recover_requires_exactly_one_action_flag() -> None:
+def test_recover_requires_exactly_one_action_flag(runner) -> None:
     missing = runner.invoke(app, ["vm", "recover", "42"])
     assert missing.exit_code != 0
     assert "Select exactly one" in missing.output
@@ -73,19 +69,19 @@ def test_recover_requires_exactly_one_action_flag() -> None:
     assert "Select exactly one" in multiple.output
 
 
-def test_raw_call_requires_unsafe_flag_before_config_resolution() -> None:
+def test_raw_call_requires_unsafe_flag_before_config_resolution(runner) -> None:
     result = runner.invoke(app, ["raw", "call", "one.vm.info", "--json-args-text", "[42]"])
     assert result.exit_code != 0
     assert "i-understand-this-is-unsafe" in result.output
 
 
-def test_vm_wait_rejects_invalid_duration_before_config_resolution() -> None:
+def test_vm_wait_rejects_invalid_duration_before_config_resolution(runner) -> None:
     result = runner.invoke(app, ["vm", "wait", "42", "--state", "ACTIVE", "--timeout", "nope"])
     assert result.exit_code != 0
     assert "Duration must be seconds" in result.output
 
 
-def test_vm_show_accepts_trailing_output_option() -> None:
+def test_vm_show_accepts_trailing_output_option(runner) -> None:
     result = runner.invoke(app, ["vm", "show", "42", "--output", "json"])
     assert result.exit_code == 0
     assert '"id": 42' in result.stdout
