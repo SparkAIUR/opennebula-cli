@@ -9,7 +9,7 @@ uv run ruff check .
 uv run mypy src tests tools
 uv run pytest
 uv run python tools/check_catalog_schema.py
-uv run python tools/check_release_version.py --tag v7.0.1
+uv run python tools/check_release_version.py --tag v7.0.2
 uv build
 ```
 
@@ -75,9 +75,9 @@ Fixture rules:
 - cleanup only removes `e2e-vm-*` VMs unless explicitly told to reset base fixtures
 - base fixtures are designed to be idempotent across repeated runs
 
-## Release validation for `7.0.1`
+## Release validation for `7.0.2`
 
-`7.0.1` maintains the OpenNebula `7.0.x` compatibility baseline validated against:
+`7.0.2` maintains the OpenNebula `7.0.x` compatibility baseline validated against:
 
 - Ubuntu `24.04`
 - OpenNebula CE `7.0.x`
@@ -90,4 +90,4 @@ Live release coverage included:
 - disposable `template instantiate`
 - disposable `vm poweroff --wait`
 
-Workflow additions in `7.0.1` are validated through unit/integration layers and examples-driven command coverage.
+Workflow and state/context additions in `7.0.2` are validated through unit/integration layers and examples-driven command coverage.

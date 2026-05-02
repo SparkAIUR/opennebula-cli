@@ -17,9 +17,9 @@ def test_app_version_falls_back_to_source_version(monkeypatch) -> None:
         raise PackageNotFoundError
 
     monkeypatch.setattr("opennebula_cli.versioning.version", _raise)
-    monkeypatch.setattr("opennebula_cli.versioning.__version__", "7.0.1")
+    monkeypatch.setattr("opennebula_cli.versioning.__version__", "7.0.2")
 
-    assert app_version() == "7.0.1"
+    assert app_version() == "7.0.2"
 
 
 def test_git_hash_prefers_stamped_build_value(monkeypatch) -> None:

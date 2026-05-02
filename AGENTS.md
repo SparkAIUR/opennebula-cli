@@ -5,7 +5,7 @@
 - Repo: `https://github.com/SparkAIUR/opennebula-cli`
 - PyPI package: `opennebula-cli`
 - Import package: `opennebula_cli`
-- Current public release: `7.0.1`
+- Current public release: `7.0.2`
 - Compatibility target for this release: OpenNebula `7.0.x`
 
 ## Mission
@@ -89,7 +89,7 @@ Workflow automation:
 - `workflow template`: `init`, `render`, `import`, `apply`
 - `workflow vm`: `init`, `apply`
 
-## Validation state for `7.0.1`
+## Validation state for `7.0.2`
 
 This release was validated against a disposable OpenNebula CE `7.0.x` environment on Ubuntu `24.04` with a localhost `lxc` host.
 
@@ -168,7 +168,7 @@ uv sync --group dev
 uv run one --help
 uv run pytest
 uv run python tools/check_catalog_schema.py
-uv run python tools/check_release_version.py --tag v7.0.1
+uv run python tools/check_release_version.py --tag v7.0.2
 uv build
 ```
 

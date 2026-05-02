@@ -17,13 +17,13 @@ It is built for operators, platform teams, CI/CD pipelines, and Python automatio
 Install the release that matches the OpenNebula compatibility line you want:
 
 ```bash
-uv tool install opennebula-cli==7.0.1
+uv tool install opennebula-cli==7.0.2
 ```
 
 Run it without installing permanently:
 
 ```bash
-uvx --from opennebula-cli==7.0.1 one --help
+uvx --from opennebula-cli==7.0.2 one --help
 ```
 
 For local development:
@@ -114,7 +114,7 @@ VM_ID="$(
 one --output json vm show "$VM_ID"
 ```
 
-## New in `7.0.1`: workflow templating and VM initialization
+## New in `7.0.2`: workflow + state/context operations
 
 This release adds an end-to-end workflow system for template rendering and VM provisioning:
 
@@ -125,6 +125,12 @@ This release adds an end-to-end workflow system for template rendering and VM pr
   - `read_file(path)`
   - `read_file_b64(path)`
   - `fetch_url(url, method=..., headers=..., params=..., body=..., timeout=...)`
+
+This release also adds local state and context management:
+
+- `one state lock enable|disable`
+- `one state ctx set|use|get|list|show|validate`
+- auth-config aware context switching with `OPENNEBULA_CLI_AUTH_CONFIG`
 
 Template workflow example:
 
@@ -179,10 +185,12 @@ Recovery and agent support:
 
 - `raw`: guarded `call`
 - `agents`: print the AI-agent usage guide
+- `state`: local lock and context management commands
+- `version`: print app version and git hash
 
-## Validation status for `7.0.1`
+## Validation status for `7.0.2`
 
-`7.0.1` targets OpenNebula `7.0.x` and maintains the compatibility baseline validated against:
+`7.0.2` targets OpenNebula `7.0.x` and maintains the compatibility baseline validated against:
 
 - Ubuntu `24.04`
 - OpenNebula CE `7.0.x`
@@ -202,7 +210,7 @@ Implemented but not yet fully live-validated on disposable fixtures:
 - `image delete`
 - `template delete`
 
-Workflow template and VM initialization additions are validated through unit/integration test coverage and runnable docs examples.
+Workflow and state/context additions are validated through unit/integration test coverage and runnable docs examples.
 
 ## Configuration and profiles
 
@@ -311,15 +319,15 @@ These scripts intentionally cover the repeatable host-preparation and read-only 
 
 Public package versions now mirror the OpenNebula compatibility target.
 
-- current release: `7.0.1`
+- current release: `7.0.2`
 - compatibility target: OpenNebula `7.0.x`
 - historical bootstrap release: `0.1.0`
 
 Release tags must always match `project.version` exactly:
 
 ```bash
-uv run python tools/check_release_version.py --tag v7.0.1
-git tag -a v7.0.1 -m "Release v7.0.1"
+uv run python tools/check_release_version.py --tag v7.0.2
+git tag -a v7.0.2 -m "Release v7.0.2"
 ```
 
 ## Docs

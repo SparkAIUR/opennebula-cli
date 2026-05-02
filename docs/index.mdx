@@ -11,7 +11,7 @@ Use it when you want:
 
 ## Current release
 
-- package version: `7.0.1`
+- package version: `7.0.2`
 - compatibility target: OpenNebula `7.0.x`
 - PyPI package: `opennebula-cli`
 - import package: `opennebula_cli`
@@ -41,10 +41,12 @@ Recovery and agent support:
 
 - `raw`: guarded `call`
 - `agents`: print the AI-agent usage guide
+- `state`: local lock and context management
+- `version`: build and git metadata output
 
 ## Validation status
 
-`7.0.1` targets the same OpenNebula `7.0.x` compatibility line validated on a disposable OpenNebula CE environment running on Ubuntu `24.04` with a localhost `lxc` host.
+`7.0.2` targets the same OpenNebula `7.0.x` compatibility line validated on a disposable OpenNebula CE environment running on Ubuntu `24.04` with a localhost `lxc` host.
 
 Live-validated for this release:
 
@@ -53,7 +55,7 @@ Live-validated for this release:
   - `template instantiate`
   - `vm poweroff --wait`
 
-Workflow enhancements in `7.0.1` are covered by unit/integration test layers and examples under `docs/examples/`.
+Workflow and state/context enhancements in `7.0.2` are covered by unit/integration test layers and examples under `docs/examples/`.
 
 ## Workflow guide
 
