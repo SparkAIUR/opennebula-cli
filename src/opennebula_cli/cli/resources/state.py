@@ -55,6 +55,15 @@ def _state(ctx: typer.Context) -> AppState:
     return cast(AppState, ctx.obj)
 
 
+def _print_context(context: StoredContext, *, active_name: str | None) -> None:
+    active_label = " (active)" if active_name == context.name else ""
+    typer.echo(f"name: {context.name}{active_label}")
+    typer.echo(f"endpoint: {context.endpoint}")
+    typer.echo(f"username: {context.username}")
+    if context.version:
+        typer.echo(f"version: {context.version}")
+
+
 def _parse_csv_values(raw: str | None) -> set[str]:
     if raw is None:
         return set()
@@ -259,5 +268,63 @@ def ctx_use(ctx: typer.Context, context_name: str) -> None:
             f"Context switched to '{context_name}'. "
             "Subsequent commands will use this context for authentication and API interactions."
         )
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@ctx_app.command("get")
+def ctx_get(ctx: typer.Context) -> None:
+    """Show the currently active context."""
+
+    _state(ctx)
+    try:
+        store = StateStore()
+        current = store.get_active_context()
+        active_name = store.active_context_name()
+        if current is None:
+            typer.echo("No active context is set.")
+            return
+        _print_context(current, active_name=active_name)
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@ctx_app.command("list")
+def ctx_list(ctx: typer.Context) -> None:
+    """List all stored contexts."""
+
+    _state(ctx)
+    try:
+        store = StateStore()
+        contexts = store.list_contexts()
+        active_name = store.active_context_name()
+        if not contexts:
+            typer.echo("No contexts found.")
+            return
+        for context in contexts:
+            suffix = " (active)" if context.name == active_name else ""
+            version = f", version={context.version}" if context.version else ""
+            typer.echo(
+                f"- {context.name}{suffix}: endpoint={context.endpoint}, "
+                f"user={context.username}{version}"
+            )
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@ctx_app.command("show")
+def ctx_show(ctx: typer.Context, context_name: str) -> None:
+    """Show details for a named context."""
+
+    _state(ctx)
+    try:
+        store = StateStore()
+        context = store.get_context(context_name)
+        active_name = store.active_context_name()
+        if context is None:
+            raise typer.BadParameter(
+                f"Context '{context_name}' was not found in state database."
+            )
+        _print_context(context, active_name=active_name)
     except Exception as exc:
         raise_cli_error(exc)

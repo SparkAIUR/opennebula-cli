@@ -70,3 +70,34 @@ def test_context_upsert_and_switch(tmp_path: Path) -> None:
     assert switched.username == "user1"
 
     assert store.use_context("missing") is False
+
+
+def test_context_get_list_and_active_name(tmp_path: Path) -> None:
+    store = StateStore(tmp_path / "state.db")
+    store.upsert_context(
+        StoredContext(
+            name="beta",
+            endpoint="https://beta.example.com/RPC2",
+            username="beta-user",
+            password="beta-pass",
+            version=None,
+        )
+    )
+    store.upsert_context(
+        StoredContext(
+            name="alpha",
+            endpoint="https://alpha.example.com/RPC2",
+            username="alpha-user",
+            password="alpha-pass",
+            version=None,
+        )
+    )
+
+    listed = store.list_contexts()
+    assert [context.name for context in listed] == ["alpha", "beta"]
+    assert store.active_context_name() == "alpha"
+
+    found = store.get_context("beta")
+    assert found is not None
+    assert found.username == "beta-user"
+    assert store.get_context("missing") is None

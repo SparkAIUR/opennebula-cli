@@ -44,6 +44,19 @@ def test_state_ctx_set_and_use(tmp_path: Path) -> None:
     assert use_result.exit_code == 0
     assert "Context switched to 'staging'" in use_result.stdout
 
+    get_result = runner.invoke(app, ["state", "ctx", "get"], env=env)
+    assert get_result.exit_code == 0
+    assert "name: staging (active)" in get_result.stdout
+    assert "endpoint: https://staging.example.com/RPC2" in get_result.stdout
+
+    show_result = runner.invoke(app, ["state", "ctx", "show", "staging"], env=env)
+    assert show_result.exit_code == 0
+    assert "name: staging (active)" in show_result.stdout
+
+    list_result = runner.invoke(app, ["state", "ctx", "list"], env=env)
+    assert list_result.exit_code == 0
+    assert "- staging (active): endpoint=https://staging.example.com/RPC2" in list_result.stdout
+
 
 def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
     env = _env(tmp_path)
@@ -82,5 +95,24 @@ def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
 
 def test_state_ctx_use_missing_context_errors(tmp_path: Path) -> None:
     result = runner.invoke(app, ["state", "ctx", "use", "missing"], env=_env(tmp_path))
+    assert result.exit_code != 0
+    assert "was not found in state database" in result.output
+
+
+def test_state_ctx_get_and_list_without_contexts(tmp_path: Path) -> None:
+    env = _env(tmp_path)
+
+    get_result = runner.invoke(app, ["state", "ctx", "get"], env=env)
+    assert get_result.exit_code == 0
+    assert "No active context is set." in get_result.stdout
+
+    list_result = runner.invoke(app, ["state", "ctx", "list"], env=env)
+    assert list_result.exit_code == 0
+    assert "No contexts found." in list_result.stdout
+
+
+def test_state_ctx_show_missing_context_errors(tmp_path: Path) -> None:
+    env = _env(tmp_path)
+    result = runner.invoke(app, ["state", "ctx", "show", "missing"], env=env)
     assert result.exit_code != 0
     assert "was not found in state database" in result.output

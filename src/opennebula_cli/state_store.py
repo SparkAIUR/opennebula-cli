@@ -286,6 +286,65 @@ class StateStore:
                 version=str(row["version"]) if row["version"] else None,
             )
 
+    def get_context(self, name: str) -> StoredContext | None:
+        """Return a named context from state DB."""
+
+        self.init()
+        with self.connect() as connection:
+            row = connection.execute(
+                """
+                SELECT name, endpoint, username, password, version
+                  FROM contexts
+                 WHERE name = ?
+                """,
+                (name,),
+            ).fetchone()
+            if row is None:
+                return None
+            return StoredContext(
+                name=str(row["name"]),
+                endpoint=str(row["endpoint"]),
+                username=str(row["username"]),
+                password=str(row["password"]),
+                version=str(row["version"]) if row["version"] else None,
+            )
+
+    def list_contexts(self) -> list[StoredContext]:
+        """Return all stored contexts sorted by name."""
+
+        self.init()
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT name, endpoint, username, password, version
+                  FROM contexts
+              ORDER BY name ASC
+                """
+            ).fetchall()
+            return [
+                StoredContext(
+                    name=str(row["name"]),
+                    endpoint=str(row["endpoint"]),
+                    username=str(row["username"]),
+                    password=str(row["password"]),
+                    version=str(row["version"]) if row["version"] else None,
+                )
+                for row in rows
+            ]
+
+    def active_context_name(self) -> str | None:
+        """Return the current active context name, if any."""
+
+        self.init()
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT value FROM meta WHERE key = 'current_context'"
+            ).fetchone()
+            if row is None:
+                return None
+            value = row["value"]
+            return str(value) if value is not None else None
+
     @staticmethod
     def _hash_password(salt: str, password: str) -> str:
         digest = hashlib.pbkdf2_hmac(
