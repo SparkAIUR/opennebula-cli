@@ -7,14 +7,26 @@ from dataclasses import dataclass
 from opennebula_cli.config.loader import resolve_runtime_config
 from opennebula_cli.config.models import ResolvedConfig
 from opennebula_cli.services import (
+    AclService,
     ClusterService,
     DatastoreService,
+    DbService,
+    GroupService,
     HostService,
     ImageService,
+    MarketappService,
+    OneFlowService,
+    OneGateService,
+    PlaceholderFamilyService,
     RawService,
     TemplateService,
+    UserService,
+    VdcService,
+    VmgroupService,
     VmService,
     VnetService,
+    VntemplateService,
+    VrouterService,
 )
 from opennebula_cli.transports.base import OpenNebulaTransport
 from opennebula_cli.transports.pyone_adapter import PyoneTransport
@@ -43,13 +55,7 @@ def build_transport(config: ResolvedConfig, *, backend: str = "pyone") -> OpenNe
 
 @dataclass(slots=True)
 class OneClient:
-    """Public typed OpenNebula SDK client.
-
-    Example:
-        >>> client = OneClient.from_env()
-        >>> client.vm.list()
-        [...]
-    """
+    """Public typed OpenNebula SDK client."""
 
     config: ResolvedConfig
     cluster: ClusterService
@@ -59,6 +65,27 @@ class OneClient:
     host: HostService
     image: ImageService
     template: TemplateService
+    user: UserService
+    group: GroupService
+    acl: AclService
+    flow: OneFlowService
+    gate: OneGateService
+    marketapp: MarketappService
+    db: DbService
+    vdc: VdcService
+    vrouter: VrouterService
+    vmgroup: VmgroupService
+    vntemplate: VntemplateService
+    zone: PlaceholderFamilyService
+    hook: PlaceholderFamilyService
+    market: PlaceholderFamilyService
+    secgroup: PlaceholderFamilyService
+    cfg: PlaceholderFamilyService
+    log: PlaceholderFamilyService
+    swap: PlaceholderFamilyService
+    showback: PlaceholderFamilyService
+    acct: PlaceholderFamilyService
+    gather: PlaceholderFamilyService
     raw: RawService
 
     @classmethod
@@ -75,6 +102,27 @@ class OneClient:
             host=HostService(transport),
             image=ImageService(transport),
             template=TemplateService(transport),
+            user=UserService(transport),
+            group=GroupService(transport),
+            acl=AclService(transport),
+            flow=OneFlowService(config),
+            gate=OneGateService(transport),
+            marketapp=MarketappService(transport),
+            db=DbService(),
+            vdc=VdcService(transport),
+            vrouter=VrouterService(transport),
+            vmgroup=VmgroupService(transport),
+            vntemplate=VntemplateService(transport),
+            zone=PlaceholderFamilyService("zone", transport),
+            hook=PlaceholderFamilyService("hook", transport),
+            market=PlaceholderFamilyService("market", transport),
+            secgroup=PlaceholderFamilyService("secgroup", transport),
+            cfg=PlaceholderFamilyService("cfg", transport),
+            log=PlaceholderFamilyService("log", transport),
+            swap=PlaceholderFamilyService("swap", transport),
+            showback=PlaceholderFamilyService("showback", transport),
+            acct=PlaceholderFamilyService("acct", transport),
+            gather=PlaceholderFamilyService("gather", transport),
             raw=RawService(transport),
         )
 

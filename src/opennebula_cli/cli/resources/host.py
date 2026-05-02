@@ -6,6 +6,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage hosts.")
@@ -61,3 +62,22 @@ def flush_host(ctx: typer.Context, host_id: int) -> None:
         state.render(state.client().host.flush(host_id), resource="host")
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="host",
+    commands=[
+        "create",
+        "delete",
+        "disable",
+        "enable",
+        "forceupdate",
+        "monitoring",
+        "offline",
+        "rename",
+        "sync",
+        "top",
+        "update",
+    ],
+)

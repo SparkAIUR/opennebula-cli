@@ -15,6 +15,7 @@ from opennebula_cli.sdk.models.common import (
     object_get,
 )
 from opennebula_cli.sdk.models.vm import Vm, VmDisk
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
 from opennebula_cli.waiters.generic import wait_for
 from opennebula_cli.waiters.vm import is_powered_off
@@ -179,9 +180,8 @@ class VmService:
 
     @staticmethod
     def _is_transient_poweroff_state(message: str) -> bool:
-        return (
-            'This action is not available for state' in message
-            and any(state in message for state in ("PENDING", "PROLOG", "BOOT"))
+        return "This action is not available for state" in message and any(
+            state in message for state in ("PENDING", "PROLOG", "BOOT")
         )
 
     def _poweroff_action(self, action: str, vm_id: int, *, retry_timeout: float) -> None:
@@ -222,3 +222,8 @@ class VmService:
             poll_interval=poll_interval,
             show_progress=show_progress,
         )
+
+    def run_official(self, verb: str, argv: builtins.list[str]) -> object:
+        """Run a captured official vm command not yet modeled by a typed method."""
+
+        return run_official_command(self._transport, "vm", verb, argv)

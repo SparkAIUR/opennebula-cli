@@ -7,6 +7,7 @@ from typing import Any
 
 from opennebula_cli.sdk.models.common import Ack, ensure_list, normalize_mapping, object_get
 from opennebula_cli.sdk.models.image import Image, ImageOwnerSummary
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
 
 
@@ -63,3 +64,8 @@ class ImageService:
     def delete(self, image_id: int) -> Ack:
         self._transport.call("one.image.delete", image_id)
         return Ack(resource="image", id=image_id, action="delete")
+
+    def run_official(self, verb: str, argv: builtins.list[str]) -> object:
+        """Run a captured official image command not yet modeled by a typed method."""
+
+        return run_official_command(self._transport, "image", verb, argv)

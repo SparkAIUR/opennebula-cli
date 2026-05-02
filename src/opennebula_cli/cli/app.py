@@ -5,16 +5,37 @@ import typer
 
 from opennebula_cli.cli.agents_guide import AGENTS_GUIDE
 from opennebula_cli.cli.resources import (
+    acct,
+    acl,
+    cfg,
     cluster,
     datastore,
+    db,
+    flow,
     flow_template,
+    gate,
+    gather,
+    group,
+    hook,
     host,
     image,
+    log,
+    market,
+    marketapp,
     raw,
+    secgroup,
+    showback,
+    swap,
     template,
+    user,
+    vdc,
     vm,
+    vmgroup,
     vnet,
+    vntemplate,
+    vrouter,
     workflow,
+    zone,
 )
 from opennebula_cli.cli.state import build_app_state
 
@@ -31,7 +52,28 @@ app.add_typer(template.app, name="template")
 app.add_typer(vnet.app, name="vnet")
 app.add_typer(datastore.app, name="datastore")
 app.add_typer(cluster.app, name="cluster")
+app.add_typer(user.app, name="user")
+app.add_typer(group.app, name="group")
+app.add_typer(acl.app, name="acl")
+app.add_typer(flow.app, name="flow")
+app.add_typer(gate.app, name="gate")
 app.add_typer(flow_template.app, name="flow-template")
+app.add_typer(marketapp.app, name="marketapp")
+app.add_typer(db.app, name="db")
+app.add_typer(vdc.app, name="vdc")
+app.add_typer(vrouter.app, name="vrouter")
+app.add_typer(vmgroup.app, name="vmgroup")
+app.add_typer(vntemplate.app, name="vntemplate")
+app.add_typer(zone.app, name="zone")
+app.add_typer(hook.app, name="hook")
+app.add_typer(market.app, name="market")
+app.add_typer(secgroup.app, name="secgroup")
+app.add_typer(cfg.app, name="cfg")
+app.add_typer(log.app, name="log")
+app.add_typer(swap.app, name="swap")
+app.add_typer(showback.app, name="showback")
+app.add_typer(acct.app, name="acct")
+app.add_typer(gather.app, name="gather")
 app.add_typer(workflow.app, name="workflow")
 app.add_typer(raw.app, name="raw")
 

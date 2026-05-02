@@ -6,6 +6,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage clusters.")
@@ -41,3 +42,24 @@ def show_cluster(ctx: typer.Context, cluster_id: int) -> None:
         state.render(state.client().cluster.show(cluster_id), resource="cluster")
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="cluster",
+    commands=[
+        "adddatastore",
+        "addhost",
+        "addvnet",
+        "create",
+        "deldatastore",
+        "delete",
+        "delhost",
+        "delvnet",
+        "optimize",
+        "plandelete",
+        "planexecute",
+        "rename",
+        "update",
+    ],
+)

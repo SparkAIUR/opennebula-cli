@@ -6,6 +6,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage VM templates.")
@@ -86,3 +87,21 @@ def instantiate_template(
         state.render(result, resource="vm")
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="template",
+    commands=[
+        "chgrp",
+        "chmod",
+        "chown",
+        "clone",
+        "create",
+        "lock",
+        "rename",
+        "top",
+        "unlock",
+        "update",
+    ],
+)

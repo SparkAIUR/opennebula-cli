@@ -6,6 +6,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage virtual machines.")
@@ -361,3 +362,63 @@ def poweroff_hard_vm(
         state.render(result, resource="vm")
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="vm",
+    commands=[
+        "backup",
+        "backup-cancel",
+        "backupmode",
+        "chgrp",
+        "chmod",
+        "chown",
+        "create",
+        "create-chart",
+        "delete-chart",
+        "deploy",
+        "disk-resize",
+        "disk-saveas",
+        "disk-snapshot-create",
+        "disk-snapshot-delete",
+        "disk-snapshot-list",
+        "disk-snapshot-rename",
+        "disk-snapshot-revert",
+        "hold",
+        "lock",
+        "migrate",
+        "nic-attach",
+        "nic-detach",
+        "nic-update",
+        "pci-attach",
+        "pci-detach",
+        "port-forward",
+        "release",
+        "rename",
+        "resched",
+        "resize",
+        "restore",
+        "save",
+        "sched-delete",
+        "sched-update",
+        "sg-attach",
+        "sg-detach",
+        "snapshot-create",
+        "snapshot-delete",
+        "snapshot-list",
+        "snapshot-revert",
+        "ssh",
+        "stop",
+        "suspend",
+        "terminate",
+        "top",
+        "undeploy",
+        "unlock",
+        "unresched",
+        "update",
+        "update-chart",
+        "updateconf",
+        "vnc",
+    ],
+)

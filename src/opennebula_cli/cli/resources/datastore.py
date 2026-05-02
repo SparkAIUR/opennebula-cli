@@ -6,6 +6,7 @@ import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.state import AppState
 
 app = typer.Typer(no_args_is_help=True, help="Manage datastores.")
@@ -41,3 +42,20 @@ def show_datastore(ctx: typer.Context, datastore_id: int) -> None:
         state.render(state.client().datastore.show(datastore_id), resource="datastore")
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="datastore",
+    commands=[
+        "chgrp",
+        "chmod",
+        "chown",
+        "create",
+        "delete",
+        "disable",
+        "enable",
+        "rename",
+        "update",
+    ],
+)

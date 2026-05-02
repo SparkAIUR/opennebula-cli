@@ -12,13 +12,16 @@ from opennebula_cli.sdk.models.vnet import Vnet
 
 __all__ = [
     "Ack",
+    "AclRule",
     "Cluster",
     "Datastore",
+    "Group",
     "Host",
     "Image",
     "ImageOwnerSummary",
     "RawCallResult",
     "Template",
+    "User",
     "Vnet",
     "Vm",
     "VmDisk",

@@ -26,6 +26,29 @@ oneimage --profile prod show 18
 
 If an incident note says `opennebula vm ...`, read it as `one vm ...`.
 
+## Coverage
+
+The CLI now tracks the captured command-output surface for the primary OpenNebula
+and plugin families, including:
+
+- `vm`, `host`, `image`, `template`, `vnet`, `datastore`, `cluster`
+- `flow`, `flow-template`, `gate`
+- `user`, `group`, `acl`
+- `marketapp`, `db`, `vdc`, `vrouter`, `vmgroup`, `vntemplate`
+- `zone`, `hook`, `market`, `secgroup`, `cfg`, `log`, `swap`, `showback`, `acct`, `gather`
+
+Typed commands return normalized SDK models where available; broader official
+parity paths are routed through the service layer for command availability.
+
+Run local-only coverage checks with:
+
+```bash
+uv run python tools/check_command_coverage.py
+uv run python tools/check_catalog_schema.py
+```
+
+Do not run live validation against real credentials until a disposable dev environment is available.
+
 ## CSI Recovery Workflow
 
 Prefer JSON for support bundles and automation:

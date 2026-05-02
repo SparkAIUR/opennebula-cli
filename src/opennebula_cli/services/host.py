@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import builtins
+
 from opennebula_cli.sdk.models.common import Ack, ensure_list, object_get
 from opennebula_cli.sdk.models.host import Host
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
 
 
@@ -25,3 +28,8 @@ class HostService:
     def flush(self, host_id: int) -> Ack:
         self._transport.call("one.host.flush", host_id)
         return Ack(resource="host", id=host_id, action="flush")
+
+    def run_official(self, verb: str, argv: builtins.list[str]) -> object:
+        """Run a captured official host command not yet modeled by a typed method."""
+
+        return run_official_command(self._transport, "host", verb, argv)

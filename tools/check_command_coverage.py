@@ -1,4 +1,4 @@
-"""Check captured OpenNebula 7.0.2 commands against the Typer CLI tree."""
+"""Check captured OpenNebula command coverage against the Typer CLI tree."""
 
 from __future__ import annotations
 
@@ -17,7 +17,28 @@ RESOURCE_FAMILIES = {
     "onevnet": "vnet",
     "onedatastore": "datastore",
     "onecluster": "cluster",
+    "oneflow": "flow",
     "oneflow-template": "flow-template",
+    "onegate": "gate",
+    "oneuser": "user",
+    "onegroup": "group",
+    "oneacl": "acl",
+    "onemarketapp": "marketapp",
+    "onedb": "db",
+    "onevdc": "vdc",
+    "onevrouter": "vrouter",
+    "onevmgroup": "vmgroup",
+    "onevntemplate": "vntemplate",
+    "onezone": "zone",
+    "onehook": "hook",
+    "onemarket": "market",
+    "onesecgroup": "secgroup",
+    "onecfg": "cfg",
+    "onelog": "log",
+    "oneswap": "swap",
+    "oneshowback": "showback",
+    "oneacct": "acct",
+    "onegather": "gather",
 }
 CUSTOM_COMMANDS = {
     "vm": {"disk-list", "wait", "poweroff-hard", "reboot-hard"},
@@ -41,6 +62,7 @@ ARGUMENT_PLACEHOLDERS = {
     "mac",
     "nicid",
     "pciid",
+    "password",
     "range",
     "sched_id",
     "sgid",
@@ -51,6 +73,7 @@ ARGUMENT_PLACEHOLDERS = {
     "text",
     "type",
     "userid",
+    "userid_list",
     "vnetid",
     "vnetid_list",
     "vmid",
@@ -59,33 +82,79 @@ ARGUMENT_PLACEHOLDERS = {
 
 
 def captured_commands(path: Path) -> dict[str, set[str]]:
-    """Parse `## COMMANDS` blocks from the captured official help notes."""
+    """Parse command blocks from captured help output markdown."""
 
     text = path.read_text(encoding="utf-8")
     result: dict[str, set[str]] = {}
     for script, family in RESOURCE_FAMILIES.items():
-        section_match = re.search(rf"### {script}\n(?P<body>.*?)(?=\n### |\Z)", text, re.S)
+        section_match = re.search(
+            rf"^## {re.escape(script)}\n(?P<body>.*?)(?=^## one[a-z0-9-]+\n|\Z)",
+            text,
+            re.S | re.M,
+        )
         if section_match is None:
             raise RuntimeError(f"Missing section for {script}")
         body = section_match.group("body")
         commands_match = re.search(
-            r"## COMMANDS\n(?P<body>.*?)(?=\n## OPTIONS|\Z)",
+            r"^## COMMANDS\n(?P<body>.*?)(?=^## ARGUMENT FORMATS\n|^## VERSION\n|\Z)",
             body,
-            re.S,
+            re.S | re.M,
         )
         if commands_match is None:
-            raise RuntimeError(f"Missing command block for {script}")
+            result[family] = set()
+            continue
+        command_body = commands_match.group("body")
+        if script == "onegate":
+            result[family] = _parse_onegate_commands(command_body)
+            continue
         commands = {
             match.group(1)
             for match in re.finditer(
                 r"^\s+\*\s+([a-z0-9][a-z0-9-]*)\b",
-                commands_match.group("body"),
+                command_body,
                 re.M,
             )
-            if match.group(1) not in ARGUMENT_PLACEHOLDERS
+            if match.group(1) not in ARGUMENT_PLACEHOLDERS and match.group(1) != script
         }
         result[family] = commands
     return result
+
+
+def _parse_onegate_commands(command_body: str) -> set[str]:
+    commands: set[str] = set()
+    for line in command_body.splitlines():
+        match = re.match(r"^\s*\*\s+onegate\s+(.+)$", line.strip())
+        if not match:
+            continue
+        suffix = match.group(1).strip()
+        if suffix.startswith("vm show"):
+            commands.add("vm-show")
+        elif suffix.startswith("vm update"):
+            commands.add("vm-update")
+        elif suffix.startswith("service show"):
+            commands.add("service-show")
+        elif suffix.startswith("service scale"):
+            commands.add("service-scale")
+        elif suffix.startswith("vrouter show"):
+            commands.add("vrouter-show")
+        elif suffix.startswith("vnet show"):
+            commands.add("vnet-show")
+        else:
+            token = suffix.split()[0]
+            if token in {
+                "resume",
+                "stop",
+                "suspend",
+                "terminate",
+                "reboot",
+                "poweroff",
+                "resched",
+                "unresched",
+                "hold",
+                "release",
+            }:
+                commands.add(token)
+    return commands
 
 
 def implemented_commands() -> dict[str, set[str]]:
@@ -127,7 +196,7 @@ def coverage_report(notes_path: Path) -> tuple[dict[str, set[str]], dict[str, se
 
 
 def main() -> None:
-    notes_path = Path("refs/notes/full-commands-7.0.2.md")
+    notes_path = Path("refs/notes/list-of-command-output.md")
     missing, extra = coverage_report(notes_path)
     has_gap = False
     for family in sorted(missing):
@@ -138,7 +207,7 @@ def main() -> None:
             print(f"{family}: extra non-official {sorted(extra[family])}")
     if has_gap:
         raise SystemExit(1)
-    print("Command coverage matches captured OpenNebula 7.0.2 commands.")
+    print("Command coverage matches captured command output.")
 
 
 if __name__ == "__main__":

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import builtins
+
 from opennebula_cli.sdk.models.common import ensure_list, object_get
 from opennebula_cli.sdk.models.vnet import Vnet
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
 
 
@@ -27,3 +30,8 @@ class VnetService:
     def show(self, vnet_id: int) -> Vnet:
         raw = self._transport.call("one.vn.info", vnet_id, False)
         return Vnet.from_raw(raw)
+
+    def run_official(self, verb: str, argv: builtins.list[str]) -> object:
+        """Run a captured official vnet command not yet modeled by a typed method."""
+
+        return run_official_command(self._transport, "vnet", verb, argv)

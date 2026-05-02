@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import builtins
+
 from opennebula_cli.sdk.models.common import Ack, ensure_list, object_get
 from opennebula_cli.sdk.models.template import Template
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
 
 
@@ -46,3 +49,8 @@ class TemplateService:
             False,
         )
         return Ack(resource="vm", id=int(vm_id), action="instantiate")
+
+    def run_official(self, verb: str, argv: builtins.list[str]) -> object:
+        """Run a captured official template command not yet modeled by a typed method."""
+
+        return run_official_command(self._transport, "template", verb, argv)
