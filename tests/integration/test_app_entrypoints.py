@@ -56,6 +56,13 @@ def test_agents_command_prints_markdown_guide() -> None:
     assert "opennebula vm" in result.stdout
 
 
+def test_version_command_prints_app_version_and_git_hash() -> None:
+    result = runner.invoke(app, ["version"])
+    assert result.exit_code == 0
+    assert "opennebula-cli version:" in result.stdout
+    assert "opennebula-cli git hash:" in result.stdout
+
+
 def test_recover_requires_exactly_one_action_flag() -> None:
     missing = runner.invoke(app, ["vm", "recover", "42"])
     assert missing.exit_code != 0

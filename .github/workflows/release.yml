@@ -29,6 +29,18 @@ jobs:
       - name: Test
         run: uv run pytest
 
+      - name: Stamp build git hash
+        run: |
+          SHORT_SHA="${GITHUB_SHA::12}"
+          cat > src/opennebula_cli/_build.py <<EOF
+          """Build metadata constants.
+
+          This file is generated during release CI to stamp the packaged commit.
+          """
+
+          BUILD_GIT_HASH = "${SHORT_SHA}"
+          EOF
+
       - name: Build
         run: uv build
 

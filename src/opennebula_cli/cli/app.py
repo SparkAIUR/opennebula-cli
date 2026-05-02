@@ -43,6 +43,7 @@ from opennebula_cli.cli.resources import (
 )
 from opennebula_cli.cli.state import build_app_state
 from opennebula_cli.lock_enforcer import ensure_command_allowed
+from opennebula_cli.versioning import app_version, git_hash
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -89,6 +90,14 @@ def agents() -> None:
     """Print the AI-agent guide."""
 
     typer.echo(AGENTS_GUIDE)
+
+
+@app.command("version")
+def show_version() -> None:
+    """Print app and git revision metadata."""
+
+    typer.echo(f"opennebula-cli version: {app_version()}")
+    typer.echo(f"opennebula-cli git hash: {git_hash()}")
 
 
 @app.callback()
