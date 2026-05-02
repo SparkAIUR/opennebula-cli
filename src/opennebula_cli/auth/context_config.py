@@ -42,6 +42,12 @@ class AuthConfigFile:
                 return context
         return None
 
+    def resolve_named(self, name: str) -> FileContext | None:
+        for context in self.contexts:
+            if context.name == name:
+                return context
+        return None
+
 
 def auth_config_path() -> Path:
     """Resolve auth config path from env and defaults."""
@@ -112,3 +118,74 @@ def load_auth_config() -> AuthConfigFile | None:
         )
 
     return AuthConfigFile(current_context=str(current_context_raw), contexts=tuple(contexts))
+
+
+def has_auth_config_file() -> bool:
+    """Return True when auth config path exists as a file."""
+
+    target = auth_config_path()
+    return target.exists() and target.is_file()
+
+
+def save_auth_config(config: AuthConfigFile) -> None:
+    """Persist auth config to OPENNEBULA_CLI_AUTH_CONFIG path."""
+
+    target = auth_config_path()
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    contexts_payload: list[dict[str, object]] = []
+    for context in config.contexts:
+        payload: dict[str, object] = {
+            "name": context.name,
+            "endpoint": context.endpoint,
+            "auth": {
+                "username": context.auth.username,
+                "password": context.auth.password,
+            },
+        }
+        if context.version:
+            payload["version"] = context.version
+        if context.endpoints:
+            payload["endpoints"] = dict(context.endpoints)
+        if context.config:
+            payload["config"] = dict(context.config)
+        contexts_payload.append(payload)
+
+    serialized = {
+        "current_context": config.current_context,
+        "contexts": contexts_payload,
+    }
+    target.write_text(yaml.safe_dump(serialized, sort_keys=False), encoding="utf-8")
+
+
+def upsert_auth_context(context: FileContext, *, set_current: bool = True) -> AuthConfigFile:
+    """Create/update a context entry in auth config file and optionally set current."""
+
+    current = load_auth_config()
+    contexts = list(current.contexts) if current else []
+    replaced = False
+    for index, existing in enumerate(contexts):
+        if existing.name == context.name:
+            contexts[index] = context
+            replaced = True
+            break
+    if not replaced:
+        contexts.append(context)
+
+    current_name = (
+        context.name if set_current else (current.current_context if current else context.name)
+    )
+    updated = AuthConfigFile(current_context=current_name, contexts=tuple(contexts))
+    save_auth_config(updated)
+    return updated
+
+
+def set_auth_current_context(name: str) -> bool:
+    """Set current context name in auth config file when context exists."""
+
+    current = load_auth_config()
+    if current is None or current.resolve_named(name) is None:
+        return False
+    updated = AuthConfigFile(current_context=name, contexts=current.contexts)
+    save_auth_config(updated)
+    return True

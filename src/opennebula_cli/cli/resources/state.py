@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
+import os
 from typing import cast
 
 import typer
 
+from opennebula_cli.auth.context_config import (
+    FileContext,
+    FileContextAuth,
+    has_auth_config_file,
+    load_auth_config,
+    set_auth_current_context,
+    upsert_auth_context,
+)
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.state import AppState
 from opennebula_cli.state_store import LOCK_ACTION_CHOICES, StateStore, StoredContext
@@ -62,6 +71,10 @@ def _print_context(context: StoredContext, *, active_name: str | None) -> None:
     typer.echo(f"username: {context.username}")
     if context.version:
         typer.echo(f"version: {context.version}")
+
+
+def _use_auth_config_contexts() -> bool:
+    return has_auth_config_file() or bool(os.getenv("OPENNEBULA_CLI_AUTH_CONFIG"))
 
 
 def _parse_csv_values(raw: str | None) -> set[str]:
@@ -235,16 +248,27 @@ def ctx_set(
         if target_password is None:
             target_password = typer.prompt("Enter your OpenNebula password", hide_input=True)
 
-        store = StateStore()
-        store.upsert_context(
-            StoredContext(
-                name=target_name,
-                endpoint=target_endpoint,
-                username=target_user,
-                password=target_password,
-                version=version,
+        if _use_auth_config_contexts():
+            upsert_auth_context(
+                FileContext(
+                    name=target_name,
+                    endpoint=target_endpoint,
+                    auth=FileContextAuth(username=target_user, password=target_password),
+                    version=version,
+                ),
+                set_current=True,
             )
-        )
+        else:
+            store = StateStore()
+            store.upsert_context(
+                StoredContext(
+                    name=target_name,
+                    endpoint=target_endpoint,
+                    username=target_user,
+                    password=target_password,
+                    version=version,
+                )
+            )
         typer.echo(
             f"Context '{target_name}' set successfully. "
             f"You can switch to this context using `one state ctx use {target_name}`."
@@ -259,11 +283,18 @@ def ctx_use(ctx: typer.Context, context_name: str) -> None:
 
     _state(ctx)  # keep state callback contract
     try:
-        store = StateStore()
-        if not store.use_context(context_name):
-            raise typer.BadParameter(
-                f"Context '{context_name}' was not found in state database."
-            )
+        if _use_auth_config_contexts():
+            ok = set_auth_current_context(context_name)
+            if not ok:
+                raise typer.BadParameter(
+                    f"Context '{context_name}' was not found in auth config."
+                )
+        else:
+            store = StateStore()
+            if not store.use_context(context_name):
+                raise typer.BadParameter(
+                    f"Context '{context_name}' was not found in state database."
+                )
         typer.echo(
             f"Context switched to '{context_name}'. "
             "Subsequent commands will use this context for authentication and API interactions."
@@ -278,9 +309,25 @@ def ctx_get(ctx: typer.Context) -> None:
 
     _state(ctx)
     try:
-        store = StateStore()
-        current = store.get_active_context()
-        active_name = store.active_context_name()
+        if _use_auth_config_contexts():
+            config = load_auth_config()
+            current_file = config.resolve_current() if config else None
+            current = (
+                StoredContext(
+                    name=current_file.name,
+                    endpoint=current_file.endpoint,
+                    username=current_file.auth.username,
+                    password=current_file.auth.password,
+                    version=current_file.version,
+                )
+                if current_file
+                else None
+            )
+            active_name = config.current_context if config else None
+        else:
+            store = StateStore()
+            current = store.get_active_context()
+            active_name = store.active_context_name()
         if current is None:
             typer.echo("No active context is set.")
             return
@@ -295,9 +342,23 @@ def ctx_list(ctx: typer.Context) -> None:
 
     _state(ctx)
     try:
-        store = StateStore()
-        contexts = store.list_contexts()
-        active_name = store.active_context_name()
+        if _use_auth_config_contexts():
+            config = load_auth_config()
+            contexts = [
+                StoredContext(
+                    name=item.name,
+                    endpoint=item.endpoint,
+                    username=item.auth.username,
+                    password=item.auth.password,
+                    version=item.version,
+                )
+                for item in (config.contexts if config else ())
+            ]
+            active_name = config.current_context if config else None
+        else:
+            store = StateStore()
+            contexts = store.list_contexts()
+            active_name = store.active_context_name()
         if not contexts:
             typer.echo("No contexts found.")
             return
@@ -318,12 +379,30 @@ def ctx_show(ctx: typer.Context, context_name: str) -> None:
 
     _state(ctx)
     try:
-        store = StateStore()
-        context = store.get_context(context_name)
-        active_name = store.active_context_name()
+        if _use_auth_config_contexts():
+            config = load_auth_config()
+            selected = config.resolve_named(context_name) if config else None
+            context = (
+                StoredContext(
+                    name=selected.name,
+                    endpoint=selected.endpoint,
+                    username=selected.auth.username,
+                    password=selected.auth.password,
+                    version=selected.version,
+                )
+                if selected
+                else None
+            )
+            active_name = config.current_context if config else None
+            not_found_source = "auth config"
+        else:
+            store = StateStore()
+            context = store.get_context(context_name)
+            active_name = store.active_context_name()
+            not_found_source = "state database"
         if context is None:
             raise typer.BadParameter(
-                f"Context '{context_name}' was not found in state database."
+                f"Context '{context_name}' was not found in {not_found_source}."
             )
         _print_context(context, active_name=active_name)
     except Exception as exc:

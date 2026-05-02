@@ -96,7 +96,7 @@ def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
 def test_state_ctx_use_missing_context_errors(tmp_path: Path) -> None:
     result = runner.invoke(app, ["state", "ctx", "use", "missing"], env=_env(tmp_path))
     assert result.exit_code != 0
-    assert "was not found in state database" in result.output
+    assert "was not found in auth config" in result.output
 
 
 def test_state_ctx_get_and_list_without_contexts(tmp_path: Path) -> None:
@@ -115,4 +115,4 @@ def test_state_ctx_show_missing_context_errors(tmp_path: Path) -> None:
     env = _env(tmp_path)
     result = runner.invoke(app, ["state", "ctx", "show", "missing"], env=env)
     assert result.exit_code != 0
-    assert "was not found in state database" in result.output
+    assert "was not found in auth config" in result.output
