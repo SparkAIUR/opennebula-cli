@@ -1,6 +1,5 @@
 """Typer application entrypoint."""
 
-import sys
 
 import click
 import typer
@@ -51,38 +50,62 @@ app = typer.Typer(
     help="Modern OpenNebula CLI and SDK for OpenNebula 7.0.x.",
 )
 
-app.add_typer(vm.app, name="vm")
-app.add_typer(host.app, name="host")
-app.add_typer(image.app, name="image")
-app.add_typer(template.app, name="template")
-app.add_typer(vnet.app, name="vnet")
-app.add_typer(datastore.app, name="datastore")
-app.add_typer(cluster.app, name="cluster")
-app.add_typer(user.app, name="user")
-app.add_typer(group.app, name="group")
-app.add_typer(acl.app, name="acl")
-app.add_typer(flow.app, name="flow")
-app.add_typer(gate.app, name="gate")
-app.add_typer(flow_template.app, name="flow-template")
-app.add_typer(marketapp.app, name="marketapp")
-app.add_typer(db.app, name="db")
-app.add_typer(vdc.app, name="vdc")
-app.add_typer(vrouter.app, name="vrouter")
-app.add_typer(vmgroup.app, name="vmgroup")
-app.add_typer(vntemplate.app, name="vntemplate")
-app.add_typer(zone.app, name="zone")
-app.add_typer(hook.app, name="hook")
-app.add_typer(market.app, name="market")
-app.add_typer(secgroup.app, name="secgroup")
-app.add_typer(cfg.app, name="cfg")
-app.add_typer(log.app, name="log")
-app.add_typer(swap.app, name="swap")
-app.add_typer(showback.app, name="showback")
-app.add_typer(acct.app, name="acct")
-app.add_typer(gather.app, name="gather")
-app.add_typer(state.app, name="state")
-app.add_typer(workflow.app, name="workflow")
-app.add_typer(raw.app, name="raw")
+def _resource_lock_callback(resource_name: str):
+    def _callback(ctx: typer.Context) -> None:
+        click_ctx = click.get_current_context()
+        if click_ctx.resilient_parsing:
+            return
+        invocation_args = [resource_name]
+        if click_ctx.invoked_subcommand:
+            invocation_args.append(str(click_ctx.invoked_subcommand))
+        try:
+            ensure_command_allowed(invocation_args)
+        except Exception as exc:
+            raise_cli_error(exc)
+
+    return _callback
+
+
+def _add_resource_typer(resource_name: str, resource_app: typer.Typer) -> None:
+    app.add_typer(
+        resource_app,
+        name=resource_name,
+        callback=_resource_lock_callback(resource_name),
+    )
+
+
+_add_resource_typer("vm", vm.app)
+_add_resource_typer("host", host.app)
+_add_resource_typer("image", image.app)
+_add_resource_typer("template", template.app)
+_add_resource_typer("vnet", vnet.app)
+_add_resource_typer("datastore", datastore.app)
+_add_resource_typer("cluster", cluster.app)
+_add_resource_typer("user", user.app)
+_add_resource_typer("group", group.app)
+_add_resource_typer("acl", acl.app)
+_add_resource_typer("flow", flow.app)
+_add_resource_typer("gate", gate.app)
+_add_resource_typer("flow-template", flow_template.app)
+_add_resource_typer("marketapp", marketapp.app)
+_add_resource_typer("db", db.app)
+_add_resource_typer("vdc", vdc.app)
+_add_resource_typer("vrouter", vrouter.app)
+_add_resource_typer("vmgroup", vmgroup.app)
+_add_resource_typer("vntemplate", vntemplate.app)
+_add_resource_typer("zone", zone.app)
+_add_resource_typer("hook", hook.app)
+_add_resource_typer("market", market.app)
+_add_resource_typer("secgroup", secgroup.app)
+_add_resource_typer("cfg", cfg.app)
+_add_resource_typer("log", log.app)
+_add_resource_typer("swap", swap.app)
+_add_resource_typer("showback", showback.app)
+_add_resource_typer("acct", acct.app)
+_add_resource_typer("gather", gather.app)
+_add_resource_typer("state", state.app)
+_add_resource_typer("workflow", workflow.app)
+_add_resource_typer("raw", raw.app)
 
 
 @app.command("agents")
@@ -120,13 +143,6 @@ def root_callback(
     ctx = click.get_current_context()
     if ctx.resilient_parsing:
         return
-    try:
-        invocation_args = list(sys.argv[1:])
-        if not invocation_args and ctx.invoked_subcommand:
-            invocation_args = [str(ctx.invoked_subcommand), *list(ctx.args)]
-        ensure_command_allowed(invocation_args)
-    except Exception as exc:
-        raise_cli_error(exc)
     ctx.obj = build_app_state(
         profile=profile,
         endpoint=endpoint,

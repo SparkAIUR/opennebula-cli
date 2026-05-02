@@ -131,6 +131,43 @@ def test_state_lock_enable_blocks_command_then_disable(tmp_path: Path) -> None:
     assert "Lock disabled successfully" in disable.stdout
 
 
+def test_state_lock_enable_delete_without_commands_blocks_delete_across_commands(
+    tmp_path: Path,
+) -> None:
+    env = _env(tmp_path)
+    enable = runner.invoke(
+        app,
+        [
+            "state",
+            "lock",
+            "enable",
+            "--actions",
+            "delete",
+            "--commands",
+            "",
+        ],
+        input="\n",
+        env=env,
+    )
+    assert enable.exit_code == 0
+    assert "Commands locked successfully" in enable.stdout
+
+    blocked_template = runner.invoke(app, ["template", "delete", "42"], env=env)
+    assert blocked_template.exit_code != 0
+    assert "Command is locked by local state policy" in blocked_template.output
+
+    blocked_image = runner.invoke(app, ["image", "delete", "42"], env=env)
+    assert blocked_image.exit_code != 0
+    assert "Command is locked by local state policy" in blocked_image.output
+
+    allowed_show = runner.invoke(app, ["vm", "show", "42"], env=env)
+    assert "Command is locked by local state policy" not in allowed_show.output
+
+    disable = runner.invoke(app, ["state", "lock", "disable"], input="y\n", env=env)
+    assert disable.exit_code == 0
+    assert "Lock disabled successfully" in disable.stdout
+
+
 def test_state_ctx_use_missing_context_errors(tmp_path: Path) -> None:
     result = runner.invoke(app, ["state", "ctx", "use", "missing"], env=_env(tmp_path))
     assert result.exit_code != 0

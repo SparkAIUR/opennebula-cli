@@ -154,8 +154,14 @@ def _select_actions(actions_raw: str | None) -> set[str]:
     return selected
 
 
-def _select_commands(commands_raw: str | None) -> set[str]:
-    if commands_raw:
+def _allow_empty_command_scope(actions: set[str]) -> bool:
+    """Whether an action scope can intentionally lock all commands."""
+
+    return actions == {"delete"}
+
+
+def _select_commands(commands_raw: str | None, actions: set[str]) -> set[str]:
+    if commands_raw is not None:
         selected = _parse_csv_values(commands_raw)
     else:
         typer.echo("Which commands do you want to lock?")
@@ -164,6 +170,8 @@ def _select_commands(commands_raw: str | None) -> set[str]:
         selected = _parse_csv_values(raw)
 
     if not selected:
+        if _allow_empty_command_scope(actions):
+            return set()
         raise typer.BadParameter("At least one command must be selected.")
 
     if "others" in selected:
@@ -176,6 +184,8 @@ def _select_commands(commands_raw: str | None) -> set[str]:
 
     selected = {item for item in selected if item}
     if not selected:
+        if _allow_empty_command_scope(actions):
+            return set()
         raise typer.BadParameter("At least one concrete command must be selected.")
     return selected
 
@@ -215,7 +225,7 @@ def lock_enable(
     _state(ctx)  # keep state callback contract
     try:
         selected_actions = _select_actions(actions)
-        selected_commands = _select_commands(commands)
+        selected_commands = _select_commands(commands, selected_actions)
         selected_password = password if password is not None else _prompt_password()
         if selected_password is not None and password is not None:
             confirmation = typer.prompt("Confirm password", hide_input=True, show_default=False)

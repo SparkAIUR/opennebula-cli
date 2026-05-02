@@ -114,7 +114,7 @@ def ensure_command_allowed(argv: list[str]) -> None:
         return
 
     action = normalize_action(parsed.action)
-    command_match = "all" in lock.commands or command in lock.commands
+    command_match = (not lock.commands) or ("all" in lock.commands) or (command in lock.commands)
     action_match = "all" in lock.actions or action in lock.actions
     if not (command_match and action_match):
         return

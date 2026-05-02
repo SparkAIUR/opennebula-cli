@@ -46,3 +46,29 @@ def test_ensure_command_allowed_bypasses_state_group(monkeypatch, tmp_path: Path
     StateStore().set_lock(actions={"all"}, commands={"all"}, password=None)
 
     ensure_command_allowed(["state", "lock", "disable"])
+
+
+def test_ensure_command_allowed_blocks_delete_for_any_command_when_no_command_scope(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    db = tmp_path / "state.db"
+    monkeypatch.setenv("OPENNEBULA_CLI_STATE_DB", str(db))
+    StateStore().set_lock(actions={"delete"}, commands=set(), password=None)
+
+    with pytest.raises(RuntimeError, match="Command is locked"):
+        ensure_command_allowed(["vm", "delete", "42"])
+
+    with pytest.raises(RuntimeError, match="Command is locked"):
+        ensure_command_allowed(["image", "delete", "42"])
+
+
+def test_ensure_command_allowed_empty_command_scope_still_respects_action(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    db = tmp_path / "state.db"
+    monkeypatch.setenv("OPENNEBULA_CLI_STATE_DB", str(db))
+    StateStore().set_lock(actions={"delete"}, commands=set(), password=None)
+
+    ensure_command_allowed(["vm", "list"])
