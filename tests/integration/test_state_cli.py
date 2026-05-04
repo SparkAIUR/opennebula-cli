@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 
 from opennebula_cli.cli.app import app
+from opennebula_cli.state_store import StateStore
 
 
 def test_state_ctx_set_and_use(runner, state_env: dict[str, str]) -> None:
@@ -261,3 +262,53 @@ def test_state_ctx_validate_all_contexts(
     assert "Context: staging" in result.stdout
     assert "Context: prod" in result.stdout
     assert "Validation complete: 8/8 checks passed" in result.stdout
+
+
+def test_state_ctx_sync_copies_auth_config_to_state_db(runner, state_env: dict[str, str]) -> None:
+    env = state_env
+
+    auth_payload = {
+        "current_context": "staging",
+        "contexts": [
+            {
+                "name": "staging",
+                "endpoint": "https://staging.example.com/RPC2",
+                "version": "v7.0.2",
+                "auth": {"username": "user1", "password": "pass1"},
+            },
+            {
+                "name": "production",
+                "endpoint": "https://prod.example.com/RPC2",
+                "version": "v7.0.2",
+                "auth": {"username": "user2", "password": "pass2"},
+            },
+        ],
+    }
+    auth_config = Path(env["OPENNEBULA_CLI_AUTH_CONFIG"])
+    auth_config.parent.mkdir(parents=True, exist_ok=True)
+    auth_config.write_text(yaml.safe_dump(auth_payload, sort_keys=False), encoding="utf-8")
+
+    result = runner.invoke(app, ["state", "ctx", "sync"], env=env)
+    assert result.exit_code == 0
+    assert (
+        "Synced 2 context(s) from auth config to state database. Active context: staging."
+        in result.stdout
+    )
+
+    store = StateStore(path=Path(env["OPENNEBULA_CLI_STATE_DB"]))
+    contexts = store.list_contexts()
+    assert {item.name for item in contexts} == {"staging", "production"}
+    assert store.active_context_name() == "staging"
+
+    list_db = runner.invoke(app, ["state", "ctx", "list", "--source", "db"], env=env)
+    assert list_db.exit_code == 0
+    assert "- staging (active): endpoint=https://staging.example.com/RPC2" in list_db.stdout
+    assert "- production: endpoint=https://prod.example.com/RPC2" in list_db.stdout
+
+
+def test_state_ctx_sync_requires_valid_auth_config(runner, state_env: dict[str, str]) -> None:
+    env = state_env
+
+    result = runner.invoke(app, ["state", "ctx", "sync"], env=env)
+    assert result.exit_code != 0
+    assert "Auth config was not found or is invalid" in result.output

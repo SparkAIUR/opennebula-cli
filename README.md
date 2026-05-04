@@ -129,7 +129,7 @@ This release adds an end-to-end workflow system for template rendering and VM pr
 This release also adds local state and context management:
 
 - `one state lock enable|disable`
-- `one state ctx set|use|get|list|show|validate`
+- `one state ctx set|use|get|list|show|validate|sync`
 - auth-config aware context switching with `OPENNEBULA_CLI_AUTH_CONFIG`
 
 Template workflow example:

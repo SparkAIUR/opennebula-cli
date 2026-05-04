@@ -105,6 +105,40 @@ def _contexts_for_source(source: str) -> tuple[list[StoredContext], str | None]:
     return store.list_contexts(), store.active_context_name()
 
 
+def _sync_auth_contexts_to_state_db() -> tuple[int, str]:
+    """Copy auth config contexts into state DB and align active context."""
+
+    config = load_auth_config()
+    if config is None:
+        raise typer.BadParameter(
+            "Auth config was not found or is invalid. "
+            "Set OPENNEBULA_CLI_AUTH_CONFIG and ensure current_context/contexts are valid."
+        )
+
+    current = config.resolve_current()
+    if current is None:
+        raise typer.BadParameter(
+            "Auth config current_context does not match any configured context entry."
+        )
+
+    store = StateStore()
+    for item in config.contexts:
+        store.upsert_context(
+            StoredContext(
+                name=item.name,
+                endpoint=item.endpoint,
+                username=item.auth.username,
+                password=item.auth.password,
+                version=item.version,
+            )
+        )
+
+    if not store.use_context(current.name):
+        raise typer.BadParameter("Failed to set active context in state database after sync.")
+
+    return len(config.contexts), current.name
+
+
 def _auth_context_endpoints(name: str) -> dict[str, str]:
     config = load_auth_config()
     selected = config.resolve_named(name) if config else None
@@ -547,5 +581,20 @@ def ctx_show(ctx: typer.Context, context_name: str) -> None:
                 f"Context '{context_name}' was not found in {not_found_source}."
             )
         _print_context(context, active_name=active_name)
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@ctx_app.command("sync")
+def ctx_sync(ctx: typer.Context) -> None:
+    """Sync auth config contexts into the local state database."""
+
+    require_state(ctx)
+    try:
+        count, active = _sync_auth_contexts_to_state_db()
+        typer.echo(
+            f"Synced {count} context(s) from auth config to state database. "
+            f"Active context: {active}."
+        )
     except Exception as exc:
         raise_cli_error(exc)
