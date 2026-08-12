@@ -101,7 +101,7 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 addopts = "-q"
 markers = [
   "contract: live OpenNebula contract validation",
