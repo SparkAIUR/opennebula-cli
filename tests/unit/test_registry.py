@@ -8,6 +8,7 @@ def test_load_catalogs() -> None:
     assert sorted(catalogs) == [
         "cluster",
         "datastore",
+        "flow-template",
         "host",
         "image",
         "template",

@@ -1,41 +1,524 @@
 family: image
 script: oneimage
-version: "7.0"
+version: '7.0'
 commands:
-  list:
+  chgrp:
     aliases: []
     handler: rpc
-    backend_method: one.imagepool.info
+    backend_method: one.image.chgrp
     supports_wait: false
-    outputs: [table, json, yaml, xml, csv, raw]
-    args: []
-    options: []
-    parity:
-      status: implemented
-      source: official-cli
-  show:
-    aliases: []
-    handler: rpc
-    backend_method: one.image.info
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: image_id
-        type: int
+    - name: range_or_imageid_list
+      type: str
+    - name: groupid
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chmod:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.chmod
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    - name: octet
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chown:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.chown
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    - name: userid
+      type: str
+    - name: groupid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chtype:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.chtype
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    - name: type
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  clone:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.clone
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  create:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.create
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   delete:
     aliases: []
     handler: rpc
     backend_method: one.image.delete
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: image_id
-        type: int
+    - name: range_or_imageid_list
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disable:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.disable
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  enable:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.enable
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.imagepool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: filterflag
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  lock:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.lock
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  nonpersistent:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.nonpersistent
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  orphans:
+    aliases: []
+    handler: composite
+    backend_method: one.image.orphans
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  persistent:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.persistent
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  rename:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.rename
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  restore:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.restore
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.snapshotdelete
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    - name: snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-flatten:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.snapshotflatten
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    - name: snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-revert:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.snapshotrevert
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    - name: snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  top:
+    aliases: []
+    handler: composite
+    backend_method: one.imagepool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: filterflag
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  unlock:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.unlock
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_imageid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  update:
+    aliases: []
+    handler: rpc
+    backend_method: one.image.update
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: imageid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  owner:
+    aliases: []
+    handler: composite
+    backend_method: one.image.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: opennebula-cli
+      notes: Project-specific helper or compatibility alias.

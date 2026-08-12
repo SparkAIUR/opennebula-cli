@@ -21,7 +21,7 @@ one workflow vm apply bulk-init.yaml --wait-ready
 
 ## Compatibility syntax
 
-Compatibility wrappers keep the official family names available:
+Compatibility wrappers keep the captured official family names available:
 
 ```bash
 one<resource> [GLOBAL OPTIONS] <verb> [RESOURCE ARGS] [RESOURCE OPTIONS]
@@ -36,15 +36,35 @@ oneimage --profile prod show 13
 onecluster --output yaml show 0
 ```
 
+## Coverage
+
+The CLI ships complete, independent command profiles for OpenNebula 7.0 and 7.4. The static help tree is their union; authenticated capability checks reject commands unavailable on the selected server line before the operation call.
+
+- `vm`
+- `host`
+- `image`
+- `template`
+- `vnet`
+- `datastore`
+- `cluster`
+- `flow-template` (compatible `oneflow-template` wrapper)
+- `form`, `provider`, `provider-template`, `provision`, and `provision-template` on 7.4
+
+Typed commands such as `list`, `show`, `template instantiate`, recovery helpers, and selected VM lifecycle operations return normalized SDK models. The broader official surface is routed through a generic service runner that preserves command availability and core XML-RPC behavior while deeper typed models are added incrementally.
+
 ## Global options vs resource options
 
 Global options are handled by the root application:
 
 - `--profile`
+- `--context`
+- `--require-context`
+- `--backend`
 - `--endpoint`
 - `--auth`
 - `--user`
 - `--password`
+- `--password-stdin`
 - `--output`
 - `--no-pager`
 - `--timeout`
@@ -52,31 +72,24 @@ Global options are handled by the root application:
 - `--cert-dir`
 - `--verbose`
 - `--debug`
+- `--compact`, `--value`, `--select`, `--filter`, `--sort`, `--no-header`
+- `--full`, `--official-schema`
 
-They must appear before the resource verb.
+Prefer placing them before the resource verb.
+
+This is required for most commands. Selected commands may provide local convenience overrides. For example, `one vm show 42 --output json` is supported.
 
 Resource options stay on the subcommand itself:
 
 ```bash
 one vm poweroff 42 --wait --timeout 600 --no-progress
+one --output json vm disk-list 42
+one --output json vm recover 42 --retry
+one --output json image owner 18
 one template instantiate 24 --name build-vm
 one workflow vm init bulk-init.yaml --vm-name alice --set global.resources.ram=8Gi
+one agents
 ```
-
-## Help examples
-
-Every implemented subcommand includes concrete examples in `--help`.
-
-Example:
-
-```text
-$ one vm list --help
-Examples:
-  one --output json vm list
-  onevm --output json list
-```
-
-Mutation commands also include a caution line in their help output.
 
 ## Output modes
 
@@ -84,6 +97,7 @@ Supported output modes:
 
 - `table`
 - `json`
+- `jsonl`
 - `yaml`
 - `xml`
 - `csv`
@@ -93,13 +107,22 @@ Guidance:
 
 - use `table` for interactive operator sessions
 - use `json`, `yaml`, `csv`, or `raw` for automation
-- keep `--output` at the root position
+- use `jsonl` for streaming one object per line
+- prefer `--output` at the root position for consistency
+
+The views are distinct contracts:
+
+- default: stable normalized typed model
+- `--full`: lossless normalized backend payload
+- `--official-schema`: upstream key names and nesting; XML repeats upstream vector element names
 
 ## Wait behavior
 
-Current waiter-enabled lifecycle paths:
+Waiter-enabled lifecycle paths:
 
 - `vm poweroff --wait`
+- `vm poweroff-hard --wait`
+- `vm wait`
 - `workflow vm init --wait-ready`
 - `workflow vm apply --wait-ready`
 
@@ -107,20 +130,18 @@ Example:
 
 ```bash
 one --output json vm poweroff 42 --wait --timeout 600 --no-progress
+one --output json vm wait 42 --state ACTIVE --lcm-state RUNNING --timeout 10m
 one workflow vm apply bulk-init.yaml --wait-ready --timeout 600 --poll-interval 2
 ```
 
-## Workflow summary behavior
+## Validation boundary
 
-`workflow vm` commands always print a per-entry status summary.
+Static and local checks:
 
-- bulk runs continue when one VM entry fails
-- if one or more entries fail, command exits with code `12` after output is printed
+```bash
+uv run python tools/check_command_coverage.py
+uv run python tools/check_catalog_schema.py
+uv run pytest
+```
 
-## Current read-only Wave 2 scope
-
-Wave 2 currently provides `list` and `show` for:
-
-- `vnet`
-- `datastore`
-- `cluster`
+Authenticated read-only validation for named contexts is implemented by `tools/validate_readonly_context.py`. Mutation validation remains a separate gate and must use a suitable disposable environment with `e2e-*` resources; never infer mutation safety from read-only success.

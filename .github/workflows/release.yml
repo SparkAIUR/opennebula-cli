@@ -26,11 +26,33 @@ jobs:
       - name: Validate release tag
         run: uv run python tools/check_release_version.py
 
+      - name: Static checks
+        run: |
+          uv run ruff check .
+          uv run mypy src
+          uv run python tools/check_catalog_schema.py
+          uv run python tools/check_command_coverage.py
+
       - name: Test
         run: uv run pytest
 
+      - name: Stamp build git hash
+        run: |
+          SHORT_SHA="${GITHUB_SHA::12}"
+          cat > src/opennebula_cli/_build.py <<EOF
+          """Build metadata constants.
+
+          This file is generated during release CI to stamp the packaged commit.
+          """
+
+          BUILD_GIT_HASH = "${SHORT_SHA}"
+          EOF
+
       - name: Build
         run: uv build
+
+      - name: Validate distributions
+        run: uv run --with twine twine check dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

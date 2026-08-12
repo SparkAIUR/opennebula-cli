@@ -10,6 +10,7 @@ remote_root="${ONE_E2E_REMOTE_ROOT:-/dev/shm/opennebula-cli-e2e}"
 mode="${ONE_E2E_MODE:-probe}"
 frontend_host="${ONE_E2E_FRONTEND_HOST:-localhost}"
 validate_local="${ONE_E2E_VALIDATE_LOCAL:-0}"
+opennebula_series="${OPENNEBULA_SERIES:-7.4}"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 artifact_root="${repo_root}/refs/tasks/e2e/${timestamp}"
 
@@ -58,7 +59,7 @@ assh push "${repo_root}/tools/e2e_seed_fixtures.sh" "${remote_root}/e2e_seed_fix
 assh push "${repo_root}/tools/e2e_cleanup_fixtures.sh" "${remote_root}/e2e_cleanup_fixtures.sh" --target "${target_alias}" --mode 755 >/dev/null
 
 set +e
-assh run "OPENNEBULA_SERIES='7.0' FRONTEND_HOSTNAME='${frontend_host}' bash '${remote_root}/e2e_bootstrap_opennebula.sh' '${remote_root}/workspace' '${mode}'" --target "${target_alias}" | tee "${artifact_root}/assh-run.txt"
+assh run "OPENNEBULA_SERIES='${opennebula_series}' FRONTEND_HOSTNAME='${frontend_host}' bash '${remote_root}/e2e_bootstrap_opennebula.sh' '${remote_root}/workspace' '${mode}'" --target "${target_alias}" | tee "${artifact_root}/assh-run.txt"
 run_exit="${PIPESTATUS[0]}"
 set -e
 

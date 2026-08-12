@@ -39,6 +39,30 @@ def ensure_list(value: object) -> list[object]:
     return [value]
 
 
+def int_or_none(value: object) -> int | None:
+    """Return an integer for numeric backend scalars and preserve absence."""
+
+    if value in (None, ""):
+        return None
+    try:
+        return int(str(object_get(value, "value", value)))
+    except (TypeError, ValueError):
+        return None
+
+
+def state_pair(raw: object, *, state_key: str = "STATE") -> tuple[str, int | None]:
+    """Normalize a state label while always retaining its numeric ID when present."""
+
+    state_id = int_or_none(object_get(raw, state_key))
+    label = object_get(raw, f"{state_key}_STR")
+    if label not in (None, ""):
+        return (str(label), state_id)
+    if state_id is not None:
+        return (f"UNKNOWN_{state_id}", state_id)
+    value = object_get(raw, state_key, "")
+    return (str(value), None)
+
+
 def _public_object_items(raw: object) -> list[tuple[str, object]]:
     """Return object items and skip known backend bookkeeping fields."""
 
@@ -72,10 +96,7 @@ def normalize_mapping(
     if isinstance(raw, Mapping):
         seen.add(raw_id)
         try:
-            return {
-                str(key): normalize_value(value, _seen=seen)
-                for key, value in raw.items()
-            }
+            return {str(key): normalize_value(value, _seen=seen) for key, value in raw.items()}
         finally:
             seen.remove(raw_id)
 

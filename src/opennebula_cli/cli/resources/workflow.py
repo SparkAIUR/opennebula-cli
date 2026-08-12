@@ -5,12 +5,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import cast
 
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.runtime import require_state
 from opennebula_cli.services.workflow_template import WorkflowTemplateService
 from opennebula_cli.services.workflow_vm import WorkflowVmInitService
 
@@ -20,10 +19,6 @@ vm_app = typer.Typer(no_args_is_help=True, help="Initialize VMs from workflow de
 app.add_typer(template_app, name="template")
 app.add_typer(vm_app, name="vm")
 TARGET_DIR_ARGUMENT = typer.Argument(Path("."), help="Directory to write starter workflow files.")
-
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 def _workflow_epilog(group: str, *examples: str, caution: str | None = None) -> str:
@@ -128,7 +123,7 @@ def import_template_workflow(
 ) -> None:
     """Render and import a workflow-backed template."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     service = WorkflowTemplateService(template_service=state.client().template)
     try:
         result = service.import_workflow(workflow_file, vars_file=vars_file, cli_vars=var or [])
@@ -163,7 +158,7 @@ def apply_template_workflow(
 ) -> None:
     """Render, optionally write, and import a workflow-backed template."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     service = WorkflowTemplateService(template_service=state.client().template)
     try:
         result = service.import_workflow(
@@ -239,7 +234,7 @@ def init_vm_workflow(
 ) -> None:
     """Initialize a single VM from workflow configuration."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     service = WorkflowVmInitService(
         template_service=state.client().template,
         vm_service=state.client().vm,
@@ -310,7 +305,7 @@ def apply_vm_workflow(
 ) -> None:
     """Initialize multiple VMs from a workflow file."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     service = WorkflowVmInitService(
         template_service=state.client().template,
         vm_service=state.client().vm,

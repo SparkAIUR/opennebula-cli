@@ -1,0 +1,52 @@
+profile: "7.4"
+server_line: "7.4.x"
+commands:
+  vm: [backup, backup-cancel, backupmode, chgrp, chmod, chown, create, create-chart, deploy, disk-attach, disk-detach, disk-resize, disk-saveas, disk-snapshot-create, disk-snapshot-delete, disk-snapshot-list, disk-snapshot-rename, disk-snapshot-revert, exec, exec-cancel, exec-retry, hold, list, lock, migrate, nic-attach, nic-detach, nic-update, pci-attach, pci-detach, port-forward, poweroff, reboot, recover, release, rename, resched, resize, restore, resume, save, sched-delete, sched-update, sg-attach, sg-detach, show, snapshot-create, snapshot-delete, snapshot-list, snapshot-revert, ssh, stop, suspend, terminate, top, undeploy, unlock, unresched, update, updateconf, vmgroup-add, vmgroup-del, vnc]
+  host: [create, delete, disable, enable, flush, forceupdate, list, monitoring, offline, rename, show, sync, top, update]
+  image: [chgrp, chmod, chown, chtype, clone, create, delete, disable, enable, list, lock, nonpersistent, orphans, persistent, rename, restore, show, snapshot-delete, snapshot-flatten, snapshot-revert, top, unlock, update]
+  template: [chgrp, chmod, chown, clone, create, delete, instantiate, list, lock, rename, show, top, unlock, update]
+  vnet: [addar, chgrp, chmod, chown, create, delete, free, hold, list, lock, orphans, recover, release, rename, reserve, rmar, show, unlock, update, updatear]
+  datastore: [chgrp, chmod, chown, create, delete, disable, enable, list, rename, show, update]
+  cluster: [adddatastore, addhost, addvnet, create, deldatastore, delete, delhost, delvnet, list, optimize, plandelete, planexecute, rename, show, update]
+  flow: [action, add-role, chgrp, chmod, chown, delete, list, purge-done, recover, release, remove-role, rename, scale, sched-delete, service, show, top, update]
+  flow-template: [chgrp, chmod, chown, clone, create, delete, instantiate, list, rename, show, top, update]
+  gate: [hold, poweroff, reboot, release, resched, resume, service-scale, service-show, stop, suspend, terminate, unresched, vm-show, vm-update, vnet-show, vrouter-show]
+  user: [addgroup, batchquota, chauth, chgrp, create, defaultquota, delete, delgroup, disable, enable, encode, key, list, login, passwd, passwdsearch, quota, show, token-create, token-delete, token-delete-all, token-set, umask, update]
+  group: [addadmin, batchquota, create, defaultquota, deladmin, delete, list, quota, show, update, vlan]
+  acl: [create, delete, list]
+  marketapp: [chgrp, chmod, chown, create, delete, disable, enable, export, list, lock, rename, service-template, show, unlock, update, vm, vm-template]
+  db: [backup, change-body, change-history, fsck, history, patch, purge-done, purge-history, restore, show-body, show-history, sqlite2mysql, update-body, update-history, upgrade, version]
+  vdc: [addcluster, adddatastore, addgroup, addhost, addvnet, create, delcluster, deldatastore, delete, delgroup, delhost, delvnet, list, rename, show, update]
+  vrouter: [chgrp, chmod, chown, create, delete, instantiate, list, lock, nic-attach, nic-detach, rename, show, top, unlock, update]
+  vmgroup: [chgrp, chmod, chown, create, delete, list, lock, rename, role-add, role-delete, role-update, show, unlock, update]
+  vntemplate: [chgrp, chmod, chown, clone, create, delete, instantiate, list, lock, rename, show, top, unlock, update]
+  zone: [create, delete, disable, enable, list, rename, server-add, server-del, server-reset, serversync, set, show, update]
+  hook: [create, delete, list, lock, log, rename, retry, show, top, unlock, update]
+  market: [chgrp, chmod, chown, create, delete, disable, enable, list, rename, show, update]
+  secgroup: [chgrp, chmod, chown, clone, commit, create, delete, list, rename, show, update]
+  cfg: [diff, generate, init, patch, status, upgrade, validate]
+  log: [get, get-service, get-vm]
+  swap: [convert, import, list]
+  showback: [calculate, list]
+  acct: []
+  gather: []
+  form: [disable, enable, list, show, sync, top]
+  provider: [chgrp, chmod, chown, create, delete, list, rename, show, top, update]
+  provider-template: [instantiate, list, show, top]
+  provision: [add-host, add-ip, chgrp, chmod, chown, create, delete, del-host, del-ip, deprovision, list, logs, rename, retry, show, top, update]
+  provision-template: [instantiate, list, show, top]
+methods:
+  one.system.version: {arguments: [], safety: read, idempotency: safe}
+  one.cluster.optimize: {arguments: [cluster_id], safety: mutation, idempotency: non_idempotent}
+  one.cluster.planexecute: {arguments: [cluster_id], safety: mutation, idempotency: non_idempotent}
+  one.cluster.plandelete: {arguments: [cluster_id], safety: mutation, idempotency: idempotent}
+  one.group.vlan: {arguments: [group_id, vlan_rules], safety: mutation, idempotency: idempotent}
+  one.vm.exec: {arguments: [vm_id, command, stdin_base64], safety: mutation, idempotency: non_idempotent}
+  one.vm.retryexec: {arguments: [vm_id], safety: mutation, idempotency: non_idempotent}
+  one.vm.cancelexec: {arguments: [vm_id], safety: mutation, idempotency: idempotent}
+  one.vm.vmgroupadd: {arguments: [vm_id, vmgroup_id, role], safety: mutation, idempotency: unknown}
+  one.vm.vmgroupdel: {arguments: [vm_id], safety: mutation, idempotency: idempotent}
+  oneflow.sched_delete: {arguments: [service_id, schedule_id], transport: rest, safety: mutation, idempotency: idempotent}
+  oneform.v1: {arguments: [], transport: rest, safety: read, idempotency: safe}
+  oneprovider-template.preview: {arguments: [], transport: rest, safety: unknown, idempotency: unknown, preview: true, notes: "Stock 7.4 ships the wrapper without matching routes."}
+  oneprovision-template.preview: {arguments: [], transport: rest, safety: unknown, idempotency: unknown, preview: true, notes: "Stock 7.4 ships the wrapper without matching routes."}

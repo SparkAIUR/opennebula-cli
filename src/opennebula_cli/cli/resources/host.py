@@ -1,18 +1,13 @@
 """Host commands."""
 
-from typing import cast
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.resources.official import register_official_commands
+from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage hosts.")
-
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 @app.command(
@@ -22,7 +17,7 @@ def _state(ctx: typer.Context) -> AppState:
 def list_hosts(ctx: typer.Context) -> None:
     """List hosts."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().host.list(), resource="host")
     except Exception as exc:
@@ -36,9 +31,15 @@ def list_hosts(ctx: typer.Context) -> None:
 def show_host(ctx: typer.Context, host_id: int) -> None:
     """Show a host."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
-        state.render(state.client().host.show(host_id), resource="host")
+        service = state.client().host
+        result = (
+            service.show_full(host_id)
+            if state.full or state.official_schema
+            else service.show(host_id)
+        )
+        state.render(result, resource="host")
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -53,11 +54,36 @@ def show_host(ctx: typer.Context, host_id: int) -> None:
         caution="This command changes live resources.",
     ),
 )
-def flush_host(ctx: typer.Context, host_id: int) -> None:
+def flush_host(
+    ctx: typer.Context,
+    host_id: int,
+    delete_recreate: bool = typer.Option(False, "--delete-recreate"),
+) -> None:
     """Flush a host."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
-        state.render(state.client().host.flush(host_id), resource="host")
+        state.render(
+            state.client().host.flush(host_id, delete_recreate=delete_recreate), resource="host"
+        )
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="host",
+    commands=[
+        "create",
+        "delete",
+        "disable",
+        "enable",
+        "forceupdate",
+        "monitoring",
+        "offline",
+        "rename",
+        "sync",
+        "top",
+        "update",
+    ],
+)

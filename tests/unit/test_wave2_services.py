@@ -98,7 +98,8 @@ def test_datastore_service_list_and_show() -> None:
     assert items[0] == Datastore(
         id=3,
         name="default",
-        state="2",
+        state="UNKNOWN_2",
+        state_id=2,
         type="IMAGE_DS",
         cluster_id=0,
         ds_mad="fs",

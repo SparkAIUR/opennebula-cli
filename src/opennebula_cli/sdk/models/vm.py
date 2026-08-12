@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from opennebula_cli.sdk.models.common import normalize_value, object_get
+from opennebula_cli.sdk.models.common import int_or_none, normalize_value, object_get
 
 VM_STATES = (
     "INIT",
@@ -117,7 +117,9 @@ class Vm(BaseModel):
     id: int
     name: str
     state: str
+    state_id: int | None = None
     lcm_state: str | None = None
+    lcm_state_id: int | None = None
     host: str | None = None
     ips: list[str] = Field(default_factory=list)
     template: dict[str, Any] = Field(default_factory=dict)
@@ -133,9 +135,7 @@ class Vm(BaseModel):
             nic = template.get("NIC")
             if isinstance(nic, list):
                 ips = [
-                    str(item.get("IP"))
-                    for item in nic
-                    if isinstance(item, dict) and item.get("IP")
+                    str(item.get("IP")) for item in nic if isinstance(item, dict) and item.get("IP")
                 ]
             elif isinstance(nic, dict) and nic.get("IP"):
                 ips = [str(nic["IP"])]
@@ -156,9 +156,27 @@ class Vm(BaseModel):
             id=int(object_get(raw, "ID", 0)),
             name=str(object_get(raw, "NAME", "")),
             state=str(state),
+            state_id=int_or_none(object_get(raw, "STATE")),
             lcm_state=lcm_state,
+            lcm_state_id=int_or_none(object_get(raw, "LCM_STATE")),
             host=host,
             ips=ips,
             template=normalized_template,
             user_template=normalized_user_template,
         )
+
+
+class VmDisk(BaseModel):
+    """VM disk summary for recovery workflows."""
+
+    model_config = ConfigDict(frozen=True)
+
+    disk_id: int | None = None
+    image_id: int | None = None
+    image: str | None = None
+    target: str | None = None
+    dev_prefix: str | None = None
+    datastore_id: int | None = None
+    source: str | None = None
+    serial: str | None = None
+    raw: dict[str, Any] = Field(default_factory=dict)

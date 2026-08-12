@@ -56,6 +56,8 @@ def resolve_auth(
     cli_user: str | None,
     cli_password: str | None,
     profile_auth: str | None,
+    context_auth: str | None = None,
+    context_source: str | None = None,
     env_auth: str | None,
     default_auth_path: Path,
 ) -> ResolvedAuth:
@@ -68,6 +70,16 @@ def resolve_auth(
         return resolve_auth_value(cli_auth)
     if profile_auth:
         return resolve_auth_value(profile_auth)
+    if context_auth:
+        resolved = resolve_auth_value(context_auth)
+        if context_source is None:
+            return resolved
+        return ResolvedAuth(
+            username=resolved.username,
+            secret=resolved.secret,
+            source=context_source,
+            raw_session=resolved.raw_session,
+        )
     if env_auth:
         return resolve_auth_value(env_auth)
     return _read_auth_file(default_auth_path.expanduser())

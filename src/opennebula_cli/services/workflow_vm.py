@@ -515,9 +515,7 @@ class WorkflowVmInitService:
             raise ApiError(f"Template named '{template_name}' was not found")
         if len(template_ids) > 1:
             duplicates = ", ".join(str(value) for value in sorted(template_ids))
-            raise ApiError(
-                f"Template name '{template_name}' is ambiguous across IDs: {duplicates}"
-            )
+            raise ApiError(f"Template name '{template_name}' is ambiguous across IDs: {duplicates}")
         return template_ids[0]
 
     @staticmethod
@@ -651,10 +649,7 @@ class WorkflowVmInitService:
             return [f"{key} = [ {self._serialize_inline_mapping(value)} ]"]
         if isinstance(value, list):
             if all(isinstance(item, Mapping) for item in value):
-                return [
-                    f"{key} = [ {self._serialize_inline_mapping(item)} ]"
-                    for item in value
-                ]
+                return [f"{key} = [ {self._serialize_inline_mapping(item)} ]" for item in value]
             list_value = ", ".join(self._serialize_scalar(item) for item in value)
             return [f"{key} = [ {list_value} ]"]
         return [f"{key} = {self._serialize_scalar(value)}"]
@@ -687,11 +682,7 @@ class WorkflowVmInitService:
     def _deep_merge(cls, base: Mapping[str, Any], override: Mapping[str, Any]) -> dict[str, Any]:
         result: dict[str, Any] = copy.deepcopy(dict(base))
         for key, value in override.items():
-            if (
-                key in result
-                and isinstance(result[key], Mapping)
-                and isinstance(value, Mapping)
-            ):
+            if key in result and isinstance(result[key], Mapping) and isinstance(value, Mapping):
                 result[key] = cls._deep_merge(
                     dict(result[key]),
                     dict(value),

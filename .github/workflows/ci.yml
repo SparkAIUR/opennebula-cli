@@ -18,6 +18,8 @@ jobs:
         run: uv run mypy src
       - name: Catalog validation
         run: uv run python tools/check_catalog_schema.py
+      - name: Version-profile command coverage
+        run: uv run python tools/check_command_coverage.py
       - name: Pytest
         run: uv run pytest
       - name: Build

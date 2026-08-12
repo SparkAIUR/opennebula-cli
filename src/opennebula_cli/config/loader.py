@@ -14,6 +14,8 @@ from opennebula_cli.sdk.exceptions import ConnectionError
 def resolve_runtime_config(
     *,
     profile_name: str | None,
+    context_name: str | None = None,
+    require_context: str | None = None,
     endpoint: str | None,
     auth: str | None,
     user: str | None,
@@ -38,6 +40,8 @@ def resolve_runtime_config(
             raise ConnectionError(f"Profile '{selected}' was not found.")
     return merge_runtime_config(
         profile_name=selected,
+        context_name=context_name,
+        require_context=require_context,
         profile=profile,
         cli_endpoint=endpoint,
         cli_auth=auth,

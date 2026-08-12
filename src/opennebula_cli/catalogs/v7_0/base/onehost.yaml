@@ -1,68 +1,302 @@
 family: host
 script: onehost
-version: "7.0"
+version: '7.0'
 commands:
-  list:
+  create:
     aliases: []
     handler: rpc
-    backend_method: one.hostpool.info
+    backend_method: one.host.create
     supports_wait: false
-    outputs: [table, json, yaml, xml, csv, raw]
-    args: []
-    options: []
-    parity:
-      status: implemented
-      source: official-cli
-  show:
-    aliases: []
-    handler: rpc
-    backend_method: one.host.info
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: host_id
-        type: int
+    - name: hostname
+      type: str
+    - name: file
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.delete
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_hostid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disable:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.disable
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_hostid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   enable:
     aliases: []
     handler: rpc
     backend_method: one.host.enable
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: host_id
-        type: int
-    options: []
-    parity:
-      status: cataloged
-      source: official-cli
-  disable:
-    aliases: []
-    handler: rpc
-    backend_method: one.host.enable
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
-    args:
-      - name: host_id
-        type: int
-    options: []
-    parity:
-      status: cataloged
-      source: official-cli
-  flush:
-    aliases: []
-    handler: composite
-    backend_method: one.host.flush
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
-    args:
-      - name: host_id
-        type: int
+    - name: range_or_hostid_list
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
-      notes: Composite behavior still needs parity validation against 7.0.x.
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  flush:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.flush
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_hostid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  forceupdate:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.forceupdate
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_hostid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.hostpool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  monitoring:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.monitoring
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: hostid
+      type: str
+    - name: attr
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  offline:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.offline
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_hostid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  rename:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.rename
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: hostid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: hostid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  sync:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.sync
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_hostid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  top:
+    aliases: []
+    handler: composite
+    backend_method: one.hostpool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  update:
+    aliases: []
+    handler: rpc
+    backend_method: one.host.update
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: hostid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.

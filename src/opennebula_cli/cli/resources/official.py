@@ -1,0 +1,74 @@
+"""Helpers for registering captured official commands."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import typer
+
+from opennebula_cli.cli.error_handlers import raise_cli_error
+from opennebula_cli.cli.help_examples import command_epilog
+from opennebula_cli.cli.official_help_texts import official_command_description
+from opennebula_cli.cli.runtime import require_state
+
+COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
+VERSIONED_CAPABILITIES = {
+    ("cluster", "optimize"): "one.cluster.optimize",
+    ("cluster", "plandelete"): "one.cluster.plandelete",
+    ("cluster", "planexecute"): "one.cluster.planexecute",
+    ("group", "vlan"): "one.group.vlan",
+    ("vnet", "addleases"): "official.onevnet.addleases",
+    ("vnet", "rmleases"): "official.onevnet.rmleases",
+    ("flow", "sched-delete"): "oneflow.sched_delete",
+}
+
+
+def _describe_official_command(family: str, command_name: str) -> str:
+    """Build a descriptive help line for an official parity command."""
+
+    official = official_command_description(family, command_name)
+    if official:
+        return official
+    normalized = command_name.replace("-", " ")
+    return (
+        f"Execute `{family} {command_name}` with official-style arguments and options. "
+        f"This compatibility path forwards `{normalized}` through the parity service layer."
+    )
+
+
+def register_official_commands(app: typer.Typer, *, family: str, commands: list[str]) -> None:
+    """Register loose-argument official parity commands for a resource family."""
+
+    for command_name in commands:
+        app.command(
+            command_name,
+            help=_describe_official_command(family, command_name),
+            context_settings=COMMAND_CONTEXT,
+            epilog=command_epilog(
+                family,
+                command_name,
+                "[official args/options] --output json",
+                caution="This command may change live resources depending on the official verb.",
+            ),
+        )(_make_official_command(family, command_name))
+
+
+def _make_official_command(family: str, command_name: str) -> Any:
+    def official_command(ctx: typer.Context) -> None:
+        """Execute a captured official command through the parity service layer."""
+
+        state = require_state(ctx)
+        try:
+            client = state.client()
+            capability = VERSIONED_CAPABILITIES.get((family, command_name))
+            if capability is not None:
+                client.require_capability(capability)
+            service: Any = getattr(client, family.replace("-", "_"))
+            result = service.run_official(command_name, list(ctx.args))
+            state.render(result, resource=family)
+        except Exception as exc:
+            raise_cli_error(exc)
+
+    official_command.__name__ = f"{family}_{command_name.replace('-', '_')}"
+    official_command.__doc__ = _describe_official_command(family, command_name)
+    return official_command

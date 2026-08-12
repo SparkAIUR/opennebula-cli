@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-from opennebula_cli.sdk.models.common import Ack, ensure_list, object_get
+import builtins
+from typing import Any
+
+from opennebula_cli.sdk.models.common import Ack, ensure_list, normalize_mapping, object_get
 from opennebula_cli.sdk.models.template import Template
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
 
 
@@ -21,6 +25,9 @@ class TemplateService:
     def show(self, template_id: int) -> Template:
         raw = self._transport.call("one.template.info", template_id)
         return Template.from_raw(raw)
+
+    def show_full(self, template_id: int) -> dict[str, Any]:
+        return normalize_mapping(self._transport.call("one.template.info", template_id))
 
     def delete(self, template_id: int) -> Ack:
         self._transport.call("one.template.delete", template_id, False)
@@ -46,3 +53,8 @@ class TemplateService:
             False,
         )
         return Ack(resource="vm", id=int(vm_id), action="instantiate")
+
+    def run_official(self, verb: str, argv: builtins.list[str]) -> object:
+        """Run a captured official template command not yet modeled by a typed method."""
+
+        return run_official_command(self._transport, "template", verb, argv)

@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from typer.testing import CliRunner
-
 from opennebula_cli.cli.app import app
 
-runner = CliRunner()
 
-
-def test_workflow_template_init_writes_files(tmp_path: Path) -> None:
+def test_workflow_template_init_writes_files(runner, tmp_path: Path) -> None:
     target = tmp_path / "wf"
 
     result = runner.invoke(app, ["workflow", "template", "init", str(target)])
@@ -21,7 +17,7 @@ def test_workflow_template_init_writes_files(tmp_path: Path) -> None:
     assert (target / "vars.example.yaml").exists()
 
 
-def test_workflow_template_render_prints_template(tmp_path: Path) -> None:
+def test_workflow_template_render_prints_template(runner, tmp_path: Path) -> None:
     workflow = tmp_path / "workflow.yaml"
     template = tmp_path / "vm-template.one.j2"
     cloud_init = tmp_path / "cloud-init.yaml.j2"

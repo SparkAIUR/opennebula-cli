@@ -1,46 +1,1428 @@
 family: vm
 script: onevm
-version: "7.0"
+version: '7.0'
 commands:
+  backup:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.backup
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  backup-cancel:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.backupcancel
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  backupmode:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.backupmode
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: mode
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chgrp:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.chgrp
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    - name: groupid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chmod:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.chmod
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    - name: octet
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chown:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.chown
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    - name: userid
+      type: str
+    - name: groupid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  create:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.create
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  create-chart:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.createchart
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  delete-chart:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.deletechart
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: sched_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  deploy:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.deploy
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    - name: hostid
+      type: str
+    - name: datastoreid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-attach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.diskattach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-detach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.diskdetach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-resize:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.diskresize
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    - name: size
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-saveas:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.disksaveas
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    - name: img_name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-snapshot-create:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.disksnapshotcreate
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-snapshot-delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.disksnapshotdelete
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    - name: disk_snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-snapshot-list:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-snapshot-rename:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.disksnapshotrename
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    - name: disk_snapshot_id
+      type: str
+    - name: new_snapshot_name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-snapshot-revert:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.disksnapshotrevert
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: diskid
+      type: str
+    - name: disk_snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  hold:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   list:
     aliases: []
     handler: rpc
     backend_method: one.vmpool.infoextended
     supports_wait: false
-    outputs: [table, json, yaml, xml, csv, raw]
-    args: []
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: filterflag
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
-      notes: Uses infoextended as the preferred VM list path.
-  show:
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  lock:
     aliases: []
     handler: rpc
-    backend_method: one.vm.info
+    backend_method: one.vm.lock
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: vm_id
-        type: int
+    - name: range_or_vmid_list
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  migrate:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.migrate
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    - name: hostid
+      type: str
+    - name: datastoreid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  nic-attach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.nicattach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  nic-detach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.nicdetach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: nicid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  nic-update:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.nicupdate
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: nicid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  pci-attach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.pciattach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  pci-detach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.pcidetach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: pciid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  port-forward:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: port
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   poweroff:
     aliases: []
     handler: rpc
     backend_method: one.vm.action
     supports_wait: true
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: vm_id
-        type: int
-    options:
-      - name: hard
-        type: bool
-      - name: wait
-        type: bool
+    - name: range_or_vmid_list
+      type: str
+    options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  reboot:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  recover:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.recover
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  release:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  rename:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.rename
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  resched:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  resize:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.resize
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  restore:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.restore
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: imageid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  resume:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  save:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.save
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  sched-delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.scheddelete
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: sched_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  sched-update:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.schedupdate
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: sched_id
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  sg-attach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.sgattach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: nicid
+      type: str
+    - name: sgid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  sg-detach:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.sgdetach
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: nicid
+      type: str
+    - name: sgid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-create:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.snapshotcreate
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-delete:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.snapshotdelete
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-list:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  snapshot-revert:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.snapshotrevert
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: snapshot_id
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  ssh:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: login
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  stop:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  suspend:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  terminate:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  top:
+    aliases: []
+    handler: composite
+    backend_method: one.vmpool.infoextended
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: filterflag
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  undeploy:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  unlock:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.unlock
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  unresched:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.action
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_vmid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  update:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.update
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  update-chart:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.updatechart
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: sched_id
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  updateconf:
+    aliases: []
+    handler: rpc
+    backend_method: one.vm.updateconf
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  vnc:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: vmid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disk-list:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: opennebula-cli
+      notes: Project-specific helper or compatibility alias.
+  wait:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.info
+    supports_wait: true
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: opennebula-cli
+      notes: Project-specific helper or compatibility alias.
+  poweroff-hard:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.action
+    supports_wait: true
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: opennebula-cli
+      notes: Project-specific helper or compatibility alias.
+  reboot-hard:
+    aliases: []
+    handler: composite
+    backend_method: one.vm.action
+    supports_wait: true
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: opennebula-cli
+      notes: Project-specific helper or compatibility alias.

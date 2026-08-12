@@ -2,8 +2,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from opennebula_cli.sdk.exceptions import ApiError
+import pytest
+
+from opennebula_cli.sdk.exceptions import ApiError, PartialFailureError
 from opennebula_cli.sdk.models.common import Ack, normalize_value
+from opennebula_cli.services.cluster import ClusterService
+from opennebula_cli.services.group import GroupService
+from opennebula_cli.services.host import HostService
+from opennebula_cli.services.image import ImageService
+from opennebula_cli.services.official import run_official_command
+from opennebula_cli.services.raw import RawService
 from opennebula_cli.services.template import TemplateService
 from opennebula_cli.services.vm import VmService
 
@@ -57,9 +65,7 @@ def test_template_service_uses_full_instantiate_signature() -> None:
     assert result.action == "instantiate"
     assert result.resource == "vm"
     assert result.id == 42
-    assert transport.calls == [
-        ("one.template.instantiate", (7, "test-vm", False, "", False))
-    ]
+    assert transport.calls == [("one.template.instantiate", (7, "test-vm", False, "", False))]
 
 
 def test_template_service_instantiate_accepts_override_template() -> None:
@@ -98,7 +104,23 @@ def test_template_service_create_uses_allocate() -> None:
     assert transport.calls == [("one.template.allocate", ('NAME = "created-template"',))]
 
 
-def test_vm_poweroff_retries_pending_state() -> None:
+def test_official_template_update_uses_integer_merge_mode(tmp_path: Any) -> None:
+    template_file = tmp_path / "patch.one"
+    template_file.write_text('CONTEXT = [ ADDED = "beta" ]\n', encoding="utf-8")
+    transport = StubTransport({"one.template.update": True})
+
+    result = run_official_command(
+        transport,
+        "template",
+        "update",
+        ["92", "--file", str(template_file), "--append"],
+    )
+
+    assert result == Ack(resource="template", id=92, action="update")
+    assert transport.calls == [("one.template.update", (92, 'CONTEXT = [ ADDED = "beta" ]\n', 1))]
+
+
+def test_vm_poweroff_does_not_replay_after_api_error() -> None:
     transport = StubTransport(
         {
             "one.vm.action": [
@@ -112,11 +134,281 @@ def test_vm_poweroff_retries_pending_state() -> None:
     )
     service = VmService(transport)
 
-    result = service.poweroff(9, wait=False)
+    with pytest.raises(ApiError):
+        service.poweroff(9, wait=False)
 
-    assert isinstance(result, Ack)
-    assert result.action == "poweroff"
+    assert transport.calls == [("one.vm.action", ("poweroff", 9))]
+
+
+def test_vm_disk_attach_builds_single_disk_template() -> None:
+    transport = StubTransport({"one.vm.attach": True})
+    service = VmService(transport)
+
+    result = service.disk_attach(
+        9,
+        image_id=18,
+        dev_prefix="vd",
+        target="vdb",
+        driver="qcow2",
+        cache="writeback",
+        readonly=True,
+    )
+
+    assert result.action == "disk-attach"
     assert transport.calls == [
-        ("one.vm.action", ("poweroff", 9)),
-        ("one.vm.action", ("poweroff", 9)),
+        (
+            "one.vm.attach",
+            (
+                9,
+                'DISK = [ IMAGE_ID = "18", DEV_PREFIX = "vd", TARGET = "vdb", '
+                'DRIVER = "qcow2", CACHE = "writeback", READONLY = "YES" ]',
+            ),
+        )
     ]
+
+
+def test_vm_disk_detach_uses_disk_id() -> None:
+    transport = StubTransport({"one.vm.detach": True})
+    service = VmService(transport)
+
+    result = service.disk_detach(9, disk_id=2)
+
+    assert result.action == "disk-detach"
+    assert transport.calls == [("one.vm.detach", (9, 2))]
+
+
+def test_vm_disk_list_preserves_recovery_fields() -> None:
+    transport = StubTransport(
+        {
+            "one.vm.info": {
+                "ID": 9,
+                "NAME": "csi-vm",
+                "STATE": "3",
+                "LCM_STATE": "3",
+                "TEMPLATE": {
+                    "DISK": {
+                        "DISK_ID": "1",
+                        "IMAGE_ID": "18",
+                        "TARGET": "vdb",
+                        "SERIAL": "disk-serial",
+                        "DATASTORE_ID": "2",
+                        "SOURCE": "/var/lib/one/datastores/2/disk.0",
+                    }
+                },
+            }
+        }
+    )
+    service = VmService(transport)
+
+    disks = service.disk_list(9)
+
+    assert len(disks) == 1
+    assert disks[0].disk_id == 1
+    assert disks[0].image_id == 18
+    assert disks[0].target == "vdb"
+    assert disks[0].serial == "disk-serial"
+    assert disks[0].raw["SOURCE"] == "/var/lib/one/datastores/2/disk.0"
+
+
+def test_vm_recover_maps_flags_to_official_operations() -> None:
+    transport = StubTransport({"one.vm.recover": True})
+    service = VmService(transport)
+
+    service.recover(9, "failure")
+    service.recover(9, "success")
+    service.recover(9, "retry")
+    service.recover(9, "delete")
+
+    assert transport.calls == [
+        ("one.vm.recover", (9, 0)),
+        ("one.vm.recover", (9, 1)),
+        ("one.vm.recover", (9, 2)),
+        ("one.vm.recover", (9, 3)),
+    ]
+
+
+def test_vm_lifecycle_action_uses_one_vm_action() -> None:
+    transport = StubTransport({"one.vm.action": True})
+    service = VmService(transport)
+
+    result = service.action(9, "reboot-hard")
+
+    assert result.action == "reboot-hard"
+    assert transport.calls == [("one.vm.action", ("reboot-hard", 9))]
+
+
+def test_opennebula_74_vm_methods_use_exact_signatures() -> None:
+    transport = StubTransport(
+        {
+            "one.vm.exec": True,
+            "one.vm.retryexec": True,
+            "one.vm.cancelexec": True,
+            "one.vm.vmgroupadd": True,
+            "one.vm.vmgroupdel": True,
+        }
+    )
+    service = VmService(transport)
+
+    service.exec(9, "uname -a", stdin="hello")
+    service.exec_retry(9)
+    service.exec_cancel(9)
+    service.vmgroup_add(9, 4, "worker")
+    service.vmgroup_del(9)
+
+    assert transport.calls == [
+        ("one.vm.exec", (9, "uname -a", "aGVsbG8=")),
+        ("one.vm.retryexec", (9,)),
+        ("one.vm.cancelexec", (9,)),
+        ("one.vm.vmgroupadd", (9, 4, "worker")),
+        ("one.vm.vmgroupdel", (9,)),
+    ]
+
+
+def test_opennebula_74_cluster_and_group_methods_use_exact_signatures() -> None:
+    transport = StubTransport(
+        {
+            "one.cluster.optimize": True,
+            "one.cluster.planexecute": True,
+            "one.cluster.plandelete": True,
+            "one.group.vlan": True,
+        }
+    )
+
+    ClusterService(transport).optimize(2)
+    ClusterService(transport).plan_execute(2)
+    ClusterService(transport).plan_delete(2)
+    GroupService(transport).set_vlan(5, 'VLAN_IDS = "100-120"')
+
+    assert transport.calls == [
+        ("one.cluster.optimize", (2,)),
+        ("one.cluster.planexecute", (2,)),
+        ("one.cluster.plandelete", (2,)),
+        ("one.group.vlan", (5, 'VLAN_IDS = "100-120"')),
+    ]
+
+
+def test_host_flush_matches_official_disable_and_reschedule_composite() -> None:
+    transport = StubTransport(
+        {
+            "one.host.status": True,
+            "one.vmpool.infoextended": {
+                "VM": [
+                    {"ID": "9", "HISTORY_RECORDS": {"HISTORY": {"HID": "3"}}},
+                    {"ID": "10", "HISTORY_RECORDS": {"HISTORY": {"HID": "4"}}},
+                ]
+            },
+            "one.vm.action": True,
+        }
+    )
+
+    result = HostService(transport).flush(3)
+
+    assert [item.action for item in result] == ["disable", "resched"]
+    assert transport.calls == [
+        ("one.host.status", (3, 1)),
+        ("one.vmpool.infoextended", (-2, -1, -1, -1)),
+        ("one.vm.action", ("resched", 9)),
+    ]
+
+
+def test_official_batch_reports_partial_failure_after_attempting_each_member() -> None:
+    transport = StubTransport({"one.image.delete": [True, ApiError("blocked"), True]})
+
+    with pytest.raises(PartialFailureError) as captured:
+        run_official_command(transport, "image", "delete", ["1,2,3"])
+
+    assert captured.value.failures[0]["id"] == 2
+    assert transport.calls == [
+        ("one.image.delete", (1,)),
+        ("one.image.delete", (2,)),
+        ("one.image.delete", (3,)),
+    ]
+
+
+def test_vm_wait_state_matches_state_and_lcm_state() -> None:
+    transport = StubTransport(
+        {
+            "one.vm.info": {
+                "ID": 9,
+                "NAME": "ready-vm",
+                "STATE": "3",
+                "LCM_STATE": "3",
+            }
+        }
+    )
+    service = VmService(transport)
+
+    result = service.wait_state(
+        9,
+        state="ACTIVE",
+        lcm_state="RUNNING",
+        timeout=1,
+        poll_interval=0,
+        show_progress=False,
+    )
+
+    assert result.completed is True
+    assert result.state == "ACTIVE/RUNNING"
+
+
+def test_vm_show_full_preserves_raw_opennebula_fields() -> None:
+    transport = StubTransport(
+        {
+            "one.vm.info": {
+                "ID": 9,
+                "STATE": "3",
+                "LCM_STATE": "17",
+                "HISTORY_RECORDS": {"HISTORY": {"HOSTNAME": "host-a"}},
+                "USER_TEMPLATE": {"ERROR": "hotplug failed"},
+                "TEMPLATE": {"DISK": {"IMAGE_ID": "18", "DISK_ID": "1"}},
+            }
+        }
+    )
+    service = VmService(transport)
+
+    full = service.show_full(9)
+
+    assert full["STATE"] == "3"
+    assert full["LCM_STATE"] == "17"
+    assert full["USER_TEMPLATE"]["ERROR"] == "hotplug failed"
+    assert full["TEMPLATE"]["DISK"]["IMAGE_ID"] == "18"
+
+
+def test_image_show_full_and_owner_preserve_recovery_fields() -> None:
+    transport = StubTransport(
+        {
+            "one.image.info": {
+                "ID": "18",
+                "NAME": "pvc-image",
+                "STATE_STR": "USED",
+                "DATASTORE_ID": "2",
+                "SOURCE": "/var/lib/one/datastores/2/image",
+                "PATH": "/tmp/source.qcow2",
+                "RUNNING_VMS": ["9"],
+                "VMS": ["9", "10"],
+                "TEMPLATE": {"CSI_VOLUME": "pvc-a"},
+            }
+        }
+    )
+    service = ImageService(transport)
+
+    full = service.show_full(18)
+    owner = service.owner(18)
+
+    assert full["RUNNING_VMS"] == ["9"]
+    assert owner.running_vms == [9]
+    assert owner.vms == [9, 10]
+    assert owner.source == "/var/lib/one/datastores/2/image"
+    assert owner.template == {"CSI_VOLUME": "pvc-a"}
+
+
+def test_raw_service_returns_normalized_result() -> None:
+    transport = StubTransport({"one.vm.info": {"ID": "9", "NAME": "raw-vm"}})
+    service = RawService(transport)
+
+    result = service.call("one.vm.info", [9])
+
+    assert result.method == "one.vm.info"
+    assert result.transport == "unknown"
+    assert result.result == {"ID": "9", "NAME": "raw-vm"}
+    assert transport.calls == [("one.vm.info", (9,))]

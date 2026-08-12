@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "opennebula-cli"
-version = "7.0.1"
+version = "7.4.0"
 description = "Modern Python CLI and SDK for OpenNebula"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,7 +30,7 @@ dependencies = [
   "platformdirs>=4.2,<5",
   "pydantic>=2.12.5,<3",
   "PyYAML>=6.0,<7",
-  "pyone>=7.0.2,<8",
+  "pyone>=7.3.80,<7.5",
   "six>=1.17.0,<2",
   "rich>=14.3.3,<15",
   "typer>=0.24.1,<0.25",
@@ -50,6 +50,33 @@ onetemplate = "opennebula_cli.compat.onetemplate:main"
 onevnet = "opennebula_cli.compat.onevnet:main"
 onedatastore = "opennebula_cli.compat.onedatastore:main"
 onecluster = "opennebula_cli.compat.onecluster:main"
+oneflow-template = "opennebula_cli.compat.oneflow_template:main"
+oneflow = "opennebula_cli.compat.oneflow:main"
+onegate = "opennebula_cli.compat.onegate:main"
+oneuser = "opennebula_cli.compat.oneuser:main"
+onegroup = "opennebula_cli.compat.onegroup:main"
+oneacl = "opennebula_cli.compat.oneacl:main"
+onemarketapp = "opennebula_cli.compat.onemarketapp:main"
+onedb = "opennebula_cli.compat.onedb:main"
+onevdc = "opennebula_cli.compat.onevdc:main"
+onevrouter = "opennebula_cli.compat.onevrouter:main"
+onevmgroup = "opennebula_cli.compat.onevmgroup:main"
+onevntemplate = "opennebula_cli.compat.onevntemplate:main"
+onezone = "opennebula_cli.compat.onezone:main"
+onehook = "opennebula_cli.compat.onehook:main"
+onemarket = "opennebula_cli.compat.onemarket:main"
+onesecgroup = "opennebula_cli.compat.onesecgroup:main"
+onecfg = "opennebula_cli.compat.onecfg:main"
+onelog = "opennebula_cli.compat.onelog:main"
+oneswap = "opennebula_cli.compat.oneswap:main"
+oneshowback = "opennebula_cli.compat.oneshowback:main"
+oneacct = "opennebula_cli.compat.oneacct:main"
+onegather = "opennebula_cli.compat.onegather:main"
+oneform = "opennebula_cli.compat.oneform:main"
+oneprovider = "opennebula_cli.compat.oneprovider:main"
+oneprovider-template = "opennebula_cli.compat.oneprovider_template:main"
+oneprovision = "opennebula_cli.compat.oneprovision:main"
+oneprovision-template = "opennebula_cli.compat.oneprovision_template:main"
 
 [project.entry-points."opennebula_cli.plugins"]
 builtin = "opennebula_cli.plugins.builtin:plugin"
@@ -74,7 +101,7 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 addopts = "-q"
 markers = [
   "contract: live OpenNebula contract validation",

@@ -6,13 +6,13 @@ Use it when you want:
 
 - a stable command tree for shell scripts and CI/CD
 - compatibility wrappers for official `one*` workflows
-- deterministic JSON, YAML, CSV, XML, or raw output
+- deterministic JSON, JSON Lines, YAML, CSV, XML, or raw output
 - typed Python access without wrapping the CLI in subprocesses
 
 ## Current release
 
-- package version: `7.0.1`
-- compatibility target: OpenNebula `7.0.x`
+- package version: `7.4.0`
+- compatibility targets: OpenNebula `7.4.x` and retained `7.0.x`
 - PyPI package: `opennebula-cli`
 - import package: `opennebula_cli`
 
@@ -20,9 +20,9 @@ Use it when you want:
 
 Wave 1:
 
-- `vm`: `list`, `show`, `poweroff`
+- `vm`: `list`, `show`, `disk-list`, `disk-attach`, `disk-detach`, `recover`, `reboot`, `reboot-hard`, `resume`, `wait`, `poweroff`, `poweroff-hard`
 - `host`: `list`, `show`, `flush`
-- `image`: `list`, `show`, `delete`
+- `image`: `list`, `show`, `owner`, `delete`
 - `template`: `list`, `show`, `delete`, `instantiate`
 
 Wave 2 read-only:
@@ -37,18 +37,27 @@ Workflow automation:
 - `workflow vm`: `init` (single), `apply` (bulk)
 - cloud-init render helpers: `read_file`, `read_file_b64`, `fetch_url`
 
+Recovery and agent support:
+
+- `raw`: guarded `call`
+- `agents`: print the AI-agent usage guide
+- `state`: local lock and context management
+- `version`: build and git metadata output
+- `capabilities`: authenticated server/profile negotiation
+- `doctor`: authenticated XML-RPC identity and configured service diagnostics
+
+OpenNebula 7.4 adds VM guest exec and VM-group operations, cluster plans, group VLAN rules, OneFlow schedule deletion, and the OneForm driver/provider/provision families. The provider-template and provision-template wrappers are guarded previews because stock 7.4 does not expose their matching server routes.
+
 ## Validation status
 
-`7.0.1` targets the same OpenNebula `7.0.x` compatibility line validated on a disposable OpenNebula CE environment running on Ubuntu `24.04` with a localhost `lxc` host.
+`7.4.0` passed authenticated read-only validation against DR OpenNebula `7.4.0` through PyONE `7.3.80` and raw XML-RPC. List/show/full inspection passed across the seven typed resource families; ACL list and OneFlow service/role state pairs passed. The retained 7.0 profile is covered by the prior disposable environment evidence and a local dual-backend 7.0.2 protocol contract.
 
-Live-validated for this release:
+Validated against the 7.4 DR target:
 
 - read-only `list` and `show` paths across Wave 1 and Wave 2
-- disposable mutation validation for:
-  - `template instantiate`
-  - `vm poweroff --wait`
+- authenticated negotiation on PyONE and raw XML-RPC
 
-Workflow enhancements in `7.0.1` are covered by unit/integration test layers and examples under `docs/examples/`.
+The disposable mutation evidence for `template instantiate` and `vm poweroff --wait` predates this release on 7.0. No production mutation was performed. New 7.4 mutations are contract-tested for exact signatures, pre-I/O policy denial, partial failures, and no replay; validate them with disposable `e2e-*` resources before enabling them in an environment.
 
 ## Workflow guide
 

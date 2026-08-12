@@ -15,7 +15,7 @@ class PluginSpec(BaseModel):
 
     name: str
     plugin_api_version: str = "1"
-    supported_opennebula: str = "7.0.x"
+    supported_opennebula: str = "7.4.x"
     commands: list[str] = Field(default_factory=list)
 
 

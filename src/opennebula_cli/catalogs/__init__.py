@@ -1,0 +1,1 @@
+"""Packaged OpenNebula compatibility catalogs."""

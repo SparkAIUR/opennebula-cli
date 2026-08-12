@@ -144,8 +144,7 @@ vms:
     assert 'DISK = [ DISK_ID = "0", SIZE = "51200" ]' in first_call[2]
     assert 'DISK = [ FSTYPE = "ext4", SIZE = "20480" ]' in first_call[2]
     assert (
-        'CONTEXT = [ OPENCLAW_MODE = "managed", OPENCLAW_REGION = "us-central" ]'
-        in first_call[2]
+        'CONTEXT = [ OPENCLAW_MODE = "managed", OPENCLAW_REGION = "us-central" ]' in first_call[2]
     )
 
     second_call = template_service.calls[1]

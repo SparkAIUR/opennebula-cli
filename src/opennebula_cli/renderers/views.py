@@ -54,6 +54,25 @@ DEFAULT_VIEWS: dict[str, ViewSpec] = {
             ColumnSpec(key="type", label="TYPE"),
         ],
     ),
+    "image-owner": ViewSpec(
+        name="image-owner",
+        columns=[
+            ColumnSpec(key="id", label="ID", justify="right"),
+            ColumnSpec(key="name", label="NAME"),
+            ColumnSpec(key="state", label="STATE"),
+            ColumnSpec(key="running_vms", label="RUNNING_VMS"),
+            ColumnSpec(key="vms", label="VMS"),
+        ],
+    ),
+    "vm-disk": ViewSpec(
+        name="vm-disk",
+        columns=[
+            ColumnSpec(key="disk_id", label="DISK_ID", justify="right"),
+            ColumnSpec(key="image_id", label="IMAGE_ID", justify="right"),
+            ColumnSpec(key="target", label="TARGET"),
+            ColumnSpec(key="datastore_id", label="DATASTORE_ID", justify="right"),
+        ],
+    ),
     "template": ViewSpec(
         name="template",
         columns=[

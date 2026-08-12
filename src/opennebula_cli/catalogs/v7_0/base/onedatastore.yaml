@@ -1,53 +1,245 @@
 family: datastore
 script: onedatastore
-version: "7.0"
+version: '7.0'
 commands:
-  list:
+  chgrp:
     aliases: []
     handler: rpc
-    backend_method: one.datastorepool.info
+    backend_method: one.datastore.chgrp
     supports_wait: false
-    outputs: [table, json, yaml, xml, csv, raw]
-    args: []
-    options: []
-    parity:
-      status: implemented
-      source: official-cli
-      notes: Read-only Wave 2 list support.
-  show:
-    aliases: []
-    handler: rpc
-    backend_method: one.datastore.info
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: datastore_id
-        type: int
+    - name: range_or_datastoreid_list
+      type: str
+    - name: groupid
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chmod:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.chmod
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_datastoreid_list
+      type: str
+    - name: octet
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chown:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.chown
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_datastoreid_list
+      type: str
+    - name: userid
+      type: str
+    - name: groupid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   create:
     aliases: []
     handler: rpc
-    backend_method: one.datastore.allocate
+    backend_method: one.datastore.create
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
-    args: []
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: file
+      type: str
     options: []
     parity:
-      status: cataloged
+      status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   delete:
     aliases: []
     handler: rpc
     backend_method: one.datastore.delete
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: datastore_id
-        type: int
+    - name: range_or_datastoreid_list
+      type: str
     options: []
     parity:
-      status: cataloged
+      status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  disable:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.disable
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_datastoreid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  enable:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.enable
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_datastoreid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastorepool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args: []
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  rename:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.rename
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: datastoreid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: datastoreid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  update:
+    aliases: []
+    handler: rpc
+    backend_method: one.datastore.update
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: datastoreid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.

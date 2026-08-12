@@ -34,7 +34,7 @@ def render_table(items: list[dict[str, object]], *, ctx: RenderContext) -> None:
         for item in items:
             ctx.console.print("\t".join(str(item.get(column, "")) for column in columns))
         return
-    table = Table(show_header=True, header_style="bold cyan")
+    table = Table(show_header=not ctx.no_header, header_style="bold cyan")
     column_specs: list[ColumnSpec] = view_columns
     if not column_specs:
         for key in items[0].keys():

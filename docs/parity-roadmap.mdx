@@ -1,92 +1,52 @@
 # Parity Roadmap
 
-The command parity program is organized in waves and tracked in YAML catalogs under `src/opennebula_cli/catalogs/v7_0/base/`.
+The command parity program uses independently materialized profiles in `src/opennebula_cli/catalogs/profiles/`. Legacy family catalogs remain under `src/opennebula_cli/catalogs/v7_0/base/` while they are migrated to the richer schema.
 
-## Wave 1
+## OpenNebula 7.0 and 7.4 coverage
+
+The shipped profiles are the CI source of truth and do not depend on private `refs/*` files. Coverage includes all existing official families plus these 7.4 deltas:
 
 - `onevm`
 - `onehost`
 - `oneimage`
 - `onetemplate`
-
-Implemented commands:
-
-- `vm`: `list`, `show`, `poweroff`
-- `host`: `list`, `show`, `flush`
-- `image`: `list`, `show`, `delete`
-- `template`: `list`, `show`, `delete`, `instantiate`
-
-Validation status:
-
-- read-only `list` and `show` are live-validated
-- `template instantiate` and `vm poweroff` are live-validated on disposable fixtures
-- `host flush`, `image delete`, and `template delete` remain implemented but not yet required as live release blockers
-
-## Wave 2
-
 - `onevnet`
 - `onedatastore`
 - `onecluster`
+- `oneflow-template`
+- `oneform`, `oneprovider`, `oneprovider-template`, `oneprovision`, `oneprovision-template`
+- VM exec and VM-group operations
+- cluster plan operations, group VLAN rules, and OneFlow schedule deletion
 
-Current status:
+The first full-coverage pass provides command availability, required arguments, and core/high-value options through the service layer. Commands that already have typed SDK paths keep those typed implementations. The broader official parity surface uses a generic XML-RPC-shaped runner so each captured verb is available in canonical form and through the compatibility wrappers.
 
-- `list` and `show` are implemented
-- read-only `list` and `show` are live-validated
-- mutating Wave 2 verbs remain cataloged, not implemented
+Validation status:
 
-## Wave 3
+- both shipped command profiles match the static Typer command union
+- 7.4 DR read-only checks pass on PyONE and raw backends
+- 7.0 dual-backend local protocol compatibility passes
+- guarded preview wrappers remain unavailable unless explicitly enabled because stock 7.4 routes are absent
 
-- `oneuser`
-- `onegroup`
-- `oneacl`
-- `onezone`
-- `onevdc`
+## Project helpers
 
-Status:
+Additional helper commands remain intentionally outside the official capture:
 
-- not yet implemented
+- `vm disk-list`
+- `vm wait`
+- `vm poweroff-hard`
+- `vm reboot-hard`
+- `image owner`
+- `raw call`
+- `agents`
+- `workflow ...`
 
-## Wave 4
+## Remaining roadmap
 
-- `onesecgroup`
-- `onevmgroup`
-- `onemarket`
-- `onemarketapp`
-
-Status:
-
-- not yet implemented
-
-## Plugin wave
-
-Planned extensions:
-
-- OneFlow plugin boundary
-- plugin diagnostics
-- entry-point based registration
-
-## Workflow automation track (`7.0.1`)
-
-Implemented:
-
-- `workflow template init`
-- `workflow template render`
-- `workflow template import`
-- `workflow template apply`
-- `workflow vm init`
-- `workflow vm apply`
-
-Capabilities:
-
-- Jinja-driven VM template rendering with cloud-init support
-- local file inclusion helpers (`read_file`, `read_file_b64`)
-- remote text fetch helper (`fetch_url`) with method/headers/params/body/timeout controls
-- single and bulk VM initialization with per-entry status reporting and partial-failure resilience
+Future work should deepen typed models for the broad official compatibility runner, validate OneForm against a configured disposable server, and add live mutation evidence for the new 7.4 operations.
 
 ## Release policy
 
 Public package versions mirror the targeted OpenNebula compatibility line.
 
-- current release: `7.0.1`
-- compatibility target: OpenNebula `7.0.x`
-- historical bootstrap release: `0.1.0`
+- current release: `7.4.0`
+- compatibility targets: OpenNebula `7.4.x` and retained `7.0.x`

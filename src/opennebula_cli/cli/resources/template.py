@@ -1,18 +1,13 @@
 """Template commands."""
 
-from typing import cast
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.help_examples import command_epilog
-from opennebula_cli.cli.state import AppState
+from opennebula_cli.cli.resources.official import register_official_commands
+from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage VM templates.")
-
-
-def _state(ctx: typer.Context) -> AppState:
-    return cast(AppState, ctx.obj)
 
 
 @app.command(
@@ -22,7 +17,7 @@ def _state(ctx: typer.Context) -> AppState:
 def list_templates(ctx: typer.Context) -> None:
     """List templates."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().template.list(), resource="template")
     except Exception as exc:
@@ -36,9 +31,15 @@ def list_templates(ctx: typer.Context) -> None:
 def show_template(ctx: typer.Context, template_id: int) -> None:
     """Show a template."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
-        state.render(state.client().template.show(template_id), resource="template")
+        service = state.client().template
+        result = (
+            service.show_full(template_id)
+            if state.full or state.official_schema
+            else service.show(template_id)
+        )
+        state.render(result, resource="template")
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -56,7 +57,7 @@ def show_template(ctx: typer.Context, template_id: int) -> None:
 def delete_template(ctx: typer.Context, template_id: int) -> None:
     """Delete a template."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         state.render(state.client().template.delete(template_id), resource="template")
     except Exception as exc:
@@ -80,9 +81,27 @@ def instantiate_template(
 ) -> None:
     """Instantiate a template."""
 
-    state = _state(ctx)
+    state = require_state(ctx)
     try:
         result = state.client().template.instantiate(template_id, name=name)
         state.render(result, resource="vm")
     except Exception as exc:
         raise_cli_error(exc)
+
+
+register_official_commands(
+    app,
+    family="template",
+    commands=[
+        "chgrp",
+        "chmod",
+        "chown",
+        "clone",
+        "create",
+        "lock",
+        "rename",
+        "top",
+        "unlock",
+        "update",
+    ],
+)

@@ -12,12 +12,7 @@ def run_compat(module: str, binary: str) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["PYTHONPATH"] = str(ROOT / "src")
     argv = [binary, "--help"]
-    script = (
-        "import sys\n"
-        f"from {module} import main\n"
-        f"sys.argv = {argv!r}\n"
-        "main()\n"
-    )
+    script = f"import sys\nfrom {module} import main\nsys.argv = {argv!r}\nmain()\n"
     return subprocess.run(
         [sys.executable, "-c", script],
         capture_output=True,

@@ -1,56 +1,314 @@
 family: template
 script: onetemplate
-version: "7.0"
+version: '7.0'
 commands:
-  list:
+  chgrp:
     aliases: []
     handler: rpc
-    backend_method: one.templatepool.info
+    backend_method: one.template.chgrp
     supports_wait: false
-    outputs: [table, json, yaml, xml, csv, raw]
-    args: []
-    options: []
-    parity:
-      status: implemented
-      source: official-cli
-  show:
-    aliases: []
-    handler: rpc
-    backend_method: one.template.info
-    supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: template_id
-        type: int
+    - name: range_or_templateid_list
+      type: str
+    - name: groupid
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chmod:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.chmod
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_templateid_list
+      type: str
+    - name: octet
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  chown:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.chown
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_templateid_list
+      type: str
+    - name: userid
+      type: str
+    - name: groupid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  clone:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.clone
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: templateid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  create:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.create
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   delete:
     aliases: []
     handler: rpc
     backend_method: one.template.delete
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: template_id
-        type: int
+    - name: range_or_templateid_list
+      type: str
     options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
   instantiate:
     aliases: []
     handler: rpc
     backend_method: one.template.instantiate
     supports_wait: false
-    outputs: [table, json, yaml, xml, raw]
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
     args:
-      - name: template_id
-        type: int
-    options:
-      - name: name
-        type: str
+    - name: templateid
+      type: str
+    - name: file
+      type: str
+    options: []
     parity:
       status: implemented
       source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  list:
+    aliases: []
+    handler: rpc
+    backend_method: one.templatepool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: filterflag
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  lock:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.lock
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_templateid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  rename:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.rename
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: templateid
+      type: str
+    - name: name
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  show:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: templateid
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  top:
+    aliases: []
+    handler: composite
+    backend_method: one.templatepool.info
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: filterflag
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  unlock:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.unlock
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: range_or_templateid_list
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
+  update:
+    aliases: []
+    handler: rpc
+    backend_method: one.template.update
+    supports_wait: false
+    outputs:
+    - table
+    - json
+    - yaml
+    - xml
+    - csv
+    - raw
+    args:
+    - name: templateid
+      type: str
+    - name: file
+      type: str
+    options: []
+    parity:
+      status: implemented
+      source: official-cli
+      notes: Captured OpenNebula 7.0.2 command coverage; validated locally with fake/static
+        tests only.
