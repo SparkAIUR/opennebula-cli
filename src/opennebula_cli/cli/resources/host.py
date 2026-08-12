@@ -1,6 +1,5 @@
 """Host commands."""
 
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
@@ -9,7 +8,6 @@ from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage hosts.")
-
 
 
 @app.command(
@@ -35,7 +33,13 @@ def show_host(ctx: typer.Context, host_id: int) -> None:
 
     state = require_state(ctx)
     try:
-        state.render(state.client().host.show(host_id), resource="host")
+        service = state.client().host
+        result = (
+            service.show_full(host_id)
+            if state.full or state.official_schema
+            else service.show(host_id)
+        )
+        state.render(result, resource="host")
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -50,12 +54,18 @@ def show_host(ctx: typer.Context, host_id: int) -> None:
         caution="This command changes live resources.",
     ),
 )
-def flush_host(ctx: typer.Context, host_id: int) -> None:
+def flush_host(
+    ctx: typer.Context,
+    host_id: int,
+    delete_recreate: bool = typer.Option(False, "--delete-recreate"),
+) -> None:
     """Flush a host."""
 
     state = require_state(ctx)
     try:
-        state.render(state.client().host.flush(host_id), resource="host")
+        state.render(
+            state.client().host.flush(host_id, delete_recreate=delete_recreate), resource="host"
+        )
     except Exception as exc:
         raise_cli_error(exc)
 

@@ -3,7 +3,7 @@ set -euo pipefail
 
 workspace="${1:?workspace required}"
 mode="${2:-probe}"
-opennebula_series="${OPENNEBULA_SERIES:-7.0}"
+opennebula_series="${OPENNEBULA_SERIES:-7.4}"
 ubuntu_series="${UBUNTU_SERIES:-24.04}"
 frontend_host="${FRONTEND_HOSTNAME:-localhost}"
 opennebula_endpoint="${OPENNEBULA_ENDPOINT:-http://127.0.0.1:2633/RPC2}"

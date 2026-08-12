@@ -12,7 +12,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from opennebula_cli.sdk.exceptions import ApiError
+from opennebula_cli.sdk.exceptions import ApiError, PartialFailureError
 from opennebula_cli.sdk.models.common import Ack, ensure_list, normalize_value, object_get
 from opennebula_cli.transports.base import OpenNebulaTransport
 
@@ -229,9 +229,27 @@ def _batch_action(
     trailing_args: tuple[object, ...] = (),
 ) -> list[Ack]:
     results: list[Ack] = []
+    failures: list[dict[str, object]] = []
     for resource_id in ids:
-        transport.call(method, *leading_args, resource_id, *trailing_args)
-        results.append(_ack(family, resource_id, action))
+        try:
+            transport.call(method, *leading_args, resource_id, *trailing_args)
+            results.append(_ack(family, resource_id, action))
+        except Exception as exc:
+            failures.append(
+                {
+                    "resource": family,
+                    "id": resource_id,
+                    "action": action,
+                    "error_type": type(exc).__name__,
+                    "message": str(exc),
+                }
+            )
+    if failures:
+        raise PartialFailureError(
+            f"{len(failures)} of {len(ids)} {family} {action} operations failed.",
+            failures=failures,
+            method=method,
+        )
     return results
 
 
@@ -308,7 +326,7 @@ def _generic_admin(
             ParsedArgs(positionals=positionals[1:], options=parsed.options, flags=parsed.flags)
         )
         append = "append" in parsed.flags or parsed.options.get("append", "").lower() == "true"
-        transport.call(f"{prefix}.update", resource_id, template_text, append)
+        transport.call(f"{prefix}.update", resource_id, template_text, 1 if append else 0)
         return _ack(family, resource_id, verb)
     raise ApiError(f"Unsupported generic admin command: {family} {verb}")
 
@@ -917,7 +935,14 @@ def _run_group(transport: OpenNebulaTransport, verb: str, parsed: ParsedArgs) ->
         ).strip()
         if not name:
             raise ApiError("Missing arguments. Usage: create [group_name]")
-        group_id = int(_call_first(transport, (f"{prefix}.allocate",), name))
+        group_id = int(str(_call_first(transport, (f"{prefix}.allocate",), name)))
+        return _ack("group", group_id, verb)
+    if verb == "vlan":
+        positionals = require_positionals(parsed, 1, "vlan <groupid> [file]")
+        group_id = int(positionals[0])
+        file_value = positionals[1] if len(positionals) > 1 else parsed.options.get("file")
+        vlan_rules = read_template_file(file_value) if file_value else ""
+        transport.call(f"{prefix}.vlan", group_id, vlan_rules)
         return _ack("group", group_id, verb)
     if verb in {"addadmin", "deladmin"}:
         positionals = require_positionals(parsed, 2, f"{verb} <range|groupid_list> <userid>")

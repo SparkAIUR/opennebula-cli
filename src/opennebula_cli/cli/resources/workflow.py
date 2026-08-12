@@ -21,7 +21,6 @@ app.add_typer(vm_app, name="vm")
 TARGET_DIR_ARGUMENT = typer.Argument(Path("."), help="Directory to write starter workflow files.")
 
 
-
 def _workflow_epilog(group: str, *examples: str, caution: str | None = None) -> str:
     lines: list[str] = []
     if caution:

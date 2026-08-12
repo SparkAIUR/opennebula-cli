@@ -23,6 +23,10 @@ OneClient.from_config(config)
 - `client.vnet`
 - `client.datastore`
 - `client.cluster`
+- `client.user`, `client.group`, `client.acl`
+- `client.flow`, `client.gate`
+- `client.form`, `client.provider`, `client.provision`
+- `client.provider_template`, `client.provision_template` (guarded preview)
 
 ## CLI and SDK relationship
 
@@ -46,6 +50,9 @@ Workflow note:
 from opennebula_cli.sdk import OneClient
 
 client = OneClient.from_env()
+
+info = client.server_info()
+assert info.profile in {"7.0", "7.4"}
 
 running = [
     vm
@@ -75,6 +82,10 @@ print(template.id, template.name)
 - `TlsError`
 - `TimeoutError`
 - `ApiError`
+- `ApiFault`
+- `UnsupportedCapabilityError`
+- `PolicyError`
+- `PartialFailureError`
 - `PluginError`
 
 ## Current model coverage
@@ -88,6 +99,8 @@ Public normalized models currently include:
 - `Vnet`
 - `Datastore`
 - `Cluster`
+- `OneFlowServiceDocument` and `OneFlowRole`
+- `OneFormDocument`
 - `Ack`
 - `WaitResult`
 - `WaitSpec`

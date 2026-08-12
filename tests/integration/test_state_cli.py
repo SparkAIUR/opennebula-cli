@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import yaml
 
 from opennebula_cli.cli.app import app
+from opennebula_cli.sdk.models.system import ServerInfo
 from opennebula_cli.state_store import StateStore
 
 
@@ -61,26 +63,31 @@ def test_state_ctx_set_and_use(runner, state_env: dict[str, str]) -> None:
     payload = yaml.safe_load(auth_config.read_text(encoding="utf-8"))
     assert payload["current_context"] == "staging"
 
-    get_result = runner.invoke(app, ["state", "ctx", "get"], env=env)
+    get_result = runner.invoke(app, ["--output", "json", "state", "ctx", "get"], env=env)
     assert get_result.exit_code == 0
-    assert "name: staging (active)" in get_result.stdout
-    assert "endpoint: https://staging.example.com/RPC2" in get_result.stdout
+    assert json.loads(get_result.stdout)["name"] == "staging"
+    assert json.loads(get_result.stdout)["active"] is True
 
-    show_result = runner.invoke(app, ["state", "ctx", "show", "staging"], env=env)
+    show_result = runner.invoke(
+        app, ["--output", "json", "state", "ctx", "show", "staging"], env=env
+    )
     assert show_result.exit_code == 0
-    assert "name: staging (active)" in show_result.stdout
+    assert json.loads(show_result.stdout)["name"] == "staging"
 
-    list_result = runner.invoke(app, ["state", "ctx", "list"], env=env)
+    list_result = runner.invoke(app, ["--output", "json", "state", "ctx", "list"], env=env)
     assert list_result.exit_code == 0
-    assert "- staging (active): endpoint=https://staging.example.com/RPC2" in list_result.stdout
+    assert {item["name"] for item in json.loads(list_result.stdout)} == {
+        "staging",
+        "production",
+    }
 
     list_auth_result = runner.invoke(app, ["state", "ctx", "list", "--source", "auth"], env=env)
     assert list_auth_result.exit_code == 0
-    assert "- production: endpoint=https://prod.example.com/RPC2" in list_auth_result.stdout
+    assert "production" in list_auth_result.stdout
 
     list_db_result = runner.invoke(app, ["state", "ctx", "list", "--source", "db"], env=env)
     assert list_db_result.exit_code == 0
-    assert "No contexts found." in list_db_result.stdout
+    assert "No results." in list_db_result.stdout
 
     list_invalid = runner.invoke(app, ["state", "ctx", "list", "--source", "nope"], env=env)
     assert list_invalid.exit_code != 0
@@ -120,6 +127,74 @@ def test_state_lock_enable_blocks_command_then_disable(runner, state_env: dict[s
     )
     assert disable.exit_code == 0
     assert "Lock disabled successfully" in disable.stdout
+
+
+def test_state_lock_and_context_actions_honor_machine_output(
+    runner,
+    state_env: dict[str, str],
+) -> None:
+    env = state_env
+    enabled = runner.invoke(
+        app,
+        [
+            "--output",
+            "json",
+            "state",
+            "lock",
+            "enable",
+            "--actions",
+            "show",
+            "--commands",
+            "vm",
+        ],
+        input="\n",
+        env=env,
+    )
+    assert enabled.exit_code == 0
+    assert json.loads(enabled.stdout) == {
+        "actions": ["show"],
+        "commands": ["vm"],
+        "enabled": True,
+        "password_set": False,
+    }
+
+    status = runner.invoke(app, ["--output", "json", "state", "lock", "status"], env=env)
+    assert status.exit_code == 0
+    assert json.loads(status.stdout)["enabled"] is True
+
+    disabled = runner.invoke(
+        app,
+        ["--output", "json", "state", "lock", "disable", "--yes"],
+        env=env,
+    )
+    assert disabled.exit_code == 0
+    assert json.loads(disabled.stdout)["enabled"] is False
+
+    context_set = runner.invoke(
+        app,
+        [
+            "--output",
+            "json",
+            "state",
+            "ctx",
+            "set",
+            "--name",
+            "machine",
+            "--endpoint",
+            "https://machine.example.com/RPC2",
+            "--user",
+            "user",
+            "--password",
+            "pass",
+        ],
+        env=env,
+    )
+    assert context_set.exit_code == 0
+    assert json.loads(context_set.stdout) == {
+        "active": True,
+        "name": "machine",
+        "updated": True,
+    }
 
 
 def test_state_lock_enable_delete_without_commands_blocks_delete_across_commands(
@@ -169,13 +244,13 @@ def test_state_ctx_use_missing_context_errors(runner, state_env: dict[str, str])
 def test_state_ctx_get_and_list_without_contexts(runner, state_env: dict[str, str]) -> None:
     env = state_env
 
-    get_result = runner.invoke(app, ["state", "ctx", "get"], env=env)
+    get_result = runner.invoke(app, ["--output", "json", "state", "ctx", "get"], env=env)
     assert get_result.exit_code == 0
-    assert "No active context is set." in get_result.stdout
+    assert json.loads(get_result.stdout) is None
 
-    list_result = runner.invoke(app, ["state", "ctx", "list"], env=env)
+    list_result = runner.invoke(app, ["--output", "json", "state", "ctx", "list"], env=env)
     assert list_result.exit_code == 0
-    assert "No contexts found." in list_result.stdout
+    assert json.loads(list_result.stdout) == []
 
 
 def test_state_ctx_show_missing_context_errors(runner, state_env: dict[str, str]) -> None:
@@ -214,16 +289,28 @@ def test_state_ctx_validate_checks_endpoints_and_prints_progress(
         "opennebula_cli.cli.resources.state._check_endpoint",
         lambda _url, *, timeout: (True, f"timeout={timeout}"),
     )
+    monkeypatch.setattr(
+        "opennebula_cli.sdk.client.OneClient.server_info",
+        lambda _self: ServerInfo(
+            version="7.4.0",
+            profile="7.4",
+            endpoint="http://on.sprkinfra.com:2633/RPC2",
+            username="user1",
+            transport="raw",
+        ),
+    )
 
-    result = runner.invoke(app, ["state", "ctx", "validate", "--timeout", "3"], env=env)
+    result = runner.invoke(
+        app,
+        ["--output", "json", "state", "ctx", "validate", "--timeout", "3"],
+        env=env,
+    )
 
     assert result.exit_code == 0
-    assert "Context: staging" in result.stdout
-    assert "checking xmlrpc" in result.stdout
-    assert "checking oneflow" in result.stdout
-    assert "checking firestone" in result.stdout
-    assert "checking web" in result.stdout
-    assert "Validation complete: 4/4 checks passed" in result.stdout
+    checks = json.loads(result.stdout)
+    assert {item["service"] for item in checks} == {"xmlrpc", "oneflow", "firestone", "web"}
+    assert all(item["ok"] for item in checks)
+    assert next(item for item in checks if item["service"] == "xmlrpc")["authenticated"] is True
 
 
 def test_state_ctx_validate_all_contexts(
@@ -256,12 +343,23 @@ def test_state_ctx_validate_all_contexts(
         "opennebula_cli.cli.resources.state._check_endpoint",
         lambda _url, *, timeout: (True, f"timeout={timeout}"),
     )
+    monkeypatch.setattr(
+        "opennebula_cli.sdk.client.OneClient.server_info",
+        lambda self: ServerInfo(
+            version="7.4.0",
+            profile="7.4",
+            endpoint=self.config.connection.endpoint,
+            username=self.config.auth.username,
+            transport="raw",
+        ),
+    )
 
-    result = runner.invoke(app, ["state", "ctx", "validate", "--all"], env=env)
+    result = runner.invoke(app, ["--output", "json", "state", "ctx", "validate", "--all"], env=env)
     assert result.exit_code == 0
-    assert "Context: staging" in result.stdout
-    assert "Context: prod" in result.stdout
-    assert "Validation complete: 8/8 checks passed" in result.stdout
+    checks = json.loads(result.stdout)
+    assert {item["context"] for item in checks} == {"staging", "prod"}
+    assert len(checks) == 8
+    assert all(item["ok"] for item in checks)
 
 
 def test_state_ctx_sync_copies_auth_config_to_state_db(runner, state_env: dict[str, str]) -> None:
@@ -300,10 +398,13 @@ def test_state_ctx_sync_copies_auth_config_to_state_db(runner, state_env: dict[s
     assert {item.name for item in contexts} == {"staging", "production"}
     assert store.active_context_name() == "staging"
 
-    list_db = runner.invoke(app, ["state", "ctx", "list", "--source", "db"], env=env)
+    list_db = runner.invoke(
+        app, ["--output", "json", "state", "ctx", "list", "--source", "db"], env=env
+    )
     assert list_db.exit_code == 0
-    assert "- staging (active): endpoint=https://staging.example.com/RPC2" in list_db.stdout
-    assert "- production: endpoint=https://prod.example.com/RPC2" in list_db.stdout
+    listed = json.loads(list_db.stdout)
+    assert {item["name"] for item in listed} == {"staging", "production"}
+    assert next(item for item in listed if item["name"] == "staging")["active"] is True
 
 
 def test_state_ctx_sync_requires_valid_auth_config(runner, state_env: dict[str, str]) -> None:

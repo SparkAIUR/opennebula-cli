@@ -8,9 +8,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from opennebula_cli.auth.models import ResolvedAuth
 
-OutputMode = Literal["table", "json", "yaml", "xml", "csv", "raw", "human", "plain"]
+OutputMode = Literal["table", "json", "jsonl", "yaml", "xml", "csv", "raw", "human", "plain"]
 
-CANONICAL_OUTPUT_MODES = ("table", "json", "yaml", "xml", "csv", "raw")
+CANONICAL_OUTPUT_MODES = ("table", "json", "jsonl", "yaml", "xml", "csv", "raw")
 EXTENDED_OUTPUT_MODES = ("human", "plain")
 ALL_OUTPUT_MODES = (*CANONICAL_OUTPUT_MODES, *EXTENDED_OUTPUT_MODES)
 CANONICAL_OUTPUT_MODE_HELP = "|".join(CANONICAL_OUTPUT_MODES)
@@ -68,6 +68,9 @@ class ResolvedConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     profile: str | None = None
+    context_name: str | None = None
+    context_version: str | None = None
+    mutation_policy: Literal["allow", "deny"] = "allow"
     connection: ConnectionSettings
     auth: ResolvedAuth
     output: OutputSettings = Field(default_factory=OutputSettings)

@@ -1,6 +1,5 @@
 """OneGate compatibility commands."""
 
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
@@ -12,7 +11,6 @@ app = typer.Typer(
     no_args_is_help=True,
     help="Access OneGate VM context and metadata compatibility commands.",
 )
-
 
 
 @app.command("vm-show", epilog=command_epilog("gate", "vm-show", "42 --output json"))

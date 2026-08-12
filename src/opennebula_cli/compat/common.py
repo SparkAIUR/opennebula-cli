@@ -8,6 +8,9 @@ from opennebula_cli.cli.app import app
 
 GLOBAL_OPTIONS_WITH_VALUES = {
     "--profile",
+    "--context",
+    "--require-context",
+    "--backend",
     "--endpoint",
     "--auth",
     "--user",
@@ -15,6 +18,10 @@ GLOBAL_OPTIONS_WITH_VALUES = {
     "--output",
     "--timeout",
     "--cert-dir",
+    "--value",
+    "--select",
+    "--filter",
+    "--sort",
 }
 GLOBAL_FLAG_OPTIONS = {
     "--no-pager",
@@ -22,6 +29,11 @@ GLOBAL_FLAG_OPTIONS = {
     "--verbose",
     "-v",
     "--debug",
+    "--password-stdin",
+    "--compact",
+    "--no-header",
+    "--full",
+    "--official-schema",
 }
 
 

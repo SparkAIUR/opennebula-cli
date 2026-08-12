@@ -7,13 +7,19 @@ import ssl
 from base64 import b64encode
 from collections.abc import Mapping
 from urllib.error import HTTPError, URLError
-from urllib.parse import ParseResult, parse_qsl, urlencode, urlparse, urlunparse
+from urllib.parse import ParseResult, parse_qsl, quote, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 from opennebula_cli.config.models import ResolvedConfig
-from opennebula_cli.sdk.exceptions import ApiError
-from opennebula_cli.sdk.models.common import Ack, ensure_list, normalize_value
-from opennebula_cli.services.official import parse_id_list, parse_official_args, require_positionals
+from opennebula_cli.sdk.exceptions import ApiError, PolicyError
+from opennebula_cli.sdk.models.common import Ack, ensure_list
+from opennebula_cli.sdk.models.flow import OneFlowServiceDocument
+from opennebula_cli.services.official import (
+    ParsedArgs,
+    parse_id_list,
+    parse_official_args,
+    require_positionals,
+)
 
 
 class OneFlowService:
@@ -27,11 +33,15 @@ class OneFlowService:
         if verb in {"list", "top"}:
             payload = self._request_json("GET", "/service", parsed)
             documents = ensure_list(self._nested_get(payload, "DOCUMENT_POOL", "DOCUMENT"))
-            return [normalize_value(document) for document in documents]
+            return [OneFlowServiceDocument.from_raw(document) for document in documents]
         if verb in {"show", "service"}:
             service_id = int(require_positionals(parsed, 1, "show <serviceid>")[0])
             payload = self._request_json("GET", f"/service/{service_id}", parsed)
-            return normalize_value(self._nested_get(payload, "DOCUMENT", default=payload))
+            document = self._nested_get(payload, "DOCUMENT", default=payload)
+            return OneFlowServiceDocument.from_raw(document)
+        if self._config.mutation_policy == "deny":
+            context = self._config.context_name or "<none>"
+            raise PolicyError(f"Context '{context}' denies mutating OneFlow operations.")
         if verb == "delete":
             ids = parse_id_list(require_positionals(parsed, 1, "delete <range|serviceid_list>")[0])
             results: list[Ack] = []
@@ -42,6 +52,19 @@ class OneFlowService:
         if verb == "purge-done":
             self._request_json("POST", "/service_pool/purge_done", parsed, json_body={})
             return {"resource": "flow", "action": verb, "ok": True}
+        if verb == "sched-delete":
+            positionals = require_positionals(
+                parsed, 3, "sched-delete <serviceid> <role_name> <sched_id>"
+            )
+            service_id = int(positionals[0])
+            role = quote(positionals[1], safe="")
+            schedule_id = int(positionals[2])
+            self._request_json(
+                "DELETE",
+                f"/service/{service_id}/role/{role}/sched_action/{schedule_id}",
+                parsed,
+            )
+            return Ack(resource="flow", id=service_id, action=verb)
         if verb in {
             "recover",
             "release",
@@ -58,7 +81,7 @@ class OneFlowService:
             return self._service_action_or_update(verb, parsed)
         raise ApiError(f"Unsupported flow command: {verb}")
 
-    def _service_action_or_update(self, verb: str, parsed: object) -> object:
+    def _service_action_or_update(self, verb: str, parsed: ParsedArgs) -> object:
         positionals = require_positionals(parsed, 1, f"{verb} <serviceid>")
         service_id = int(positionals[0])
 
@@ -78,12 +101,12 @@ class OneFlowService:
 
         if verb in {"add-role", "remove-role"}:
             perform = "add_role" if verb == "add-role" else "remove_role"
-            action_body = {"action": {"perform": perform, "params": {}}}
+            role_action_body = {"action": {"perform": perform, "params": {}}}
             self._request_json(
                 "POST",
                 f"/service/{service_id}/role_action",
                 parsed,
-                json_body=action_body,
+                json_body=role_action_body,
             )
             return Ack(resource="flow", id=service_id, action=verb)
 

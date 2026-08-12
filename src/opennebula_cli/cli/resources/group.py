@@ -1,6 +1,5 @@
 """Group commands."""
 
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
@@ -9,7 +8,6 @@ from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage groups.")
-
 
 
 @app.command(
@@ -52,5 +50,6 @@ register_official_commands(
         "delete",
         "quota",
         "update",
+        "vlan",
     ],
 )

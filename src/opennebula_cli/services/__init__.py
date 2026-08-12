@@ -11,6 +11,12 @@ from opennebula_cli.services.group import GroupService
 from opennebula_cli.services.host import HostService
 from opennebula_cli.services.image import ImageService
 from opennebula_cli.services.marketapp import MarketappService
+from opennebula_cli.services.oneform import (
+    OneFormService,
+    PreviewTemplateService,
+    ProviderService,
+    ProvisionService,
+)
 from opennebula_cli.services.placeholder import PlaceholderFamilyService
 from opennebula_cli.services.raw import RawService
 from opennebula_cli.services.template import TemplateService
@@ -36,7 +42,11 @@ __all__ = [
     "HostService",
     "ImageService",
     "MarketappService",
+    "OneFormService",
     "PlaceholderFamilyService",
+    "PreviewTemplateService",
+    "ProviderService",
+    "ProvisionService",
     "RawService",
     "TemplateService",
     "UserService",

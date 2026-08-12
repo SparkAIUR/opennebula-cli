@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+import base64
 import builtins
-import time
 from typing import Any, Literal
 
-from opennebula_cli.sdk.exceptions import ApiError
 from opennebula_cli.sdk.models.common import (
     Ack,
     WaitResult,
@@ -129,6 +128,37 @@ class VmService:
         self._transport.call("one.vm.action", action, vm_id)
         return Ack(resource="vm", id=vm_id, action=action)
 
+    def exec(self, vm_id: int, command: str, *, stdin: str = "") -> Ack:
+        """Execute a command through the OpenNebula 7.4 guest operation API."""
+
+        encoded_stdin = base64.b64encode(stdin.encode("utf-8")).decode("ascii")
+        self._transport.call("one.vm.exec", vm_id, command, encoded_stdin)
+        return Ack(resource="vm", id=vm_id, action="exec")
+
+    def exec_retry(self, vm_id: int) -> Ack:
+        """Retry the last OpenNebula 7.4 guest command."""
+
+        self._transport.call("one.vm.retryexec", vm_id)
+        return Ack(resource="vm", id=vm_id, action="exec-retry")
+
+    def exec_cancel(self, vm_id: int) -> Ack:
+        """Cancel the active OpenNebula 7.4 guest command."""
+
+        self._transport.call("one.vm.cancelexec", vm_id)
+        return Ack(resource="vm", id=vm_id, action="exec-cancel")
+
+    def vmgroup_add(self, vm_id: int, vmgroup_id: int, role: str) -> Ack:
+        """Add a VM to a VM group using the OpenNebula 7.4 API."""
+
+        self._transport.call("one.vm.vmgroupadd", vm_id, vmgroup_id, role)
+        return Ack(resource="vm", id=vm_id, action="vmgroup-add")
+
+    def vmgroup_del(self, vm_id: int) -> Ack:
+        """Remove a VM from its VM group using the OpenNebula 7.4 API."""
+
+        self._transport.call("one.vm.vmgroupdel", vm_id)
+        return Ack(resource="vm", id=vm_id, action="vmgroup-del")
+
     def recover(
         self,
         vm_id: int,
@@ -178,26 +208,6 @@ class VmService:
             show_progress=show_progress,
         )
 
-    @staticmethod
-    def _is_transient_poweroff_state(message: str) -> bool:
-        return "This action is not available for state" in message and any(
-            state in message for state in ("PENDING", "PROLOG", "BOOT")
-        )
-
-    def _poweroff_action(self, action: str, vm_id: int, *, retry_timeout: float) -> None:
-        deadline = time.monotonic() + retry_timeout
-        while True:
-            try:
-                self._transport.call("one.vm.action", action, vm_id)
-                return
-            except ApiError as exc:
-                message = str(exc)
-                if not self._is_transient_poweroff_state(message):
-                    raise
-                if time.monotonic() >= deadline:
-                    raise
-                time.sleep(3.0)
-
     def poweroff(
         self,
         vm_id: int,
@@ -209,7 +219,7 @@ class VmService:
         show_progress: bool = True,
     ) -> Ack | WaitResult:
         action = "poweroff-hard" if hard else "poweroff"
-        self._poweroff_action(action, vm_id, retry_timeout=min(timeout if wait else 30.0, 60.0))
+        self._transport.call("one.vm.action", action, vm_id)
         if not wait:
             return Ack(resource="vm", id=vm_id, action=action)
         return wait_for(

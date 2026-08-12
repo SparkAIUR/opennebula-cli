@@ -1,10 +1,10 @@
 # Parity Roadmap
 
-The command parity program is tracked in YAML catalogs under `src/opennebula_cli/catalogs/v7_0/base/`.
+The command parity program uses independently materialized profiles in `src/opennebula_cli/catalogs/profiles/`. Legacy family catalogs remain under `src/opennebula_cli/catalogs/v7_0/base/` while they are migrated to the richer schema.
 
-## OpenNebula 7.0.2 captured coverage
+## OpenNebula 7.0 and 7.4 coverage
 
-Implemented for the captured 7.0.2 command families in `refs/notes/full-commands-7.0.2.md`:
+The shipped profiles are the CI source of truth and do not depend on private `refs/*` files. Coverage includes all existing official families plus these 7.4 deltas:
 
 - `onevm`
 - `onehost`
@@ -14,14 +14,18 @@ Implemented for the captured 7.0.2 command families in `refs/notes/full-commands
 - `onedatastore`
 - `onecluster`
 - `oneflow-template`
+- `oneform`, `oneprovider`, `oneprovider-template`, `oneprovision`, `oneprovision-template`
+- VM exec and VM-group operations
+- cluster plan operations, group VLAN rules, and OneFlow schedule deletion
 
 The first full-coverage pass provides command availability, required arguments, and core/high-value options through the service layer. Commands that already have typed SDK paths keep those typed implementations. The broader official parity surface uses a generic XML-RPC-shaped runner so each captured verb is available in canonical form and through the compatibility wrappers.
 
 Validation status:
 
-- local command coverage check passes for all captured commands
-- unit/static tests use fake transports only
-- no live credential or remote OpenNebula validation is part of this pass
+- both shipped command profiles match the static Typer command union
+- 7.4 DR read-only checks pass on PyONE and raw backends
+- 7.0 dual-backend local protocol compatibility passes
+- guarded preview wrappers remain unavailable unless explicitly enabled because stock 7.4 routes are absent
 
 ## Project helpers
 
@@ -38,15 +42,11 @@ Additional helper commands remain intentionally outside the official capture:
 
 ## Remaining roadmap
 
-Future parity expansion should target additional OpenNebula command families not present in the 7.0.2 capture used for this pass:
-
-- `oneuser`, `onegroup`, `oneacl`, `onezone`, `onevdc`
-- `onesecgroup`, `onevmgroup`, `onemarket`, `onemarketapp`
-- OneFlow/plugin-backed commands
+Future work should deepen typed models for the broad official compatibility runner, validate OneForm against a configured disposable server, and add live mutation evidence for the new 7.4 operations.
 
 ## Release policy
 
 Public package versions mirror the targeted OpenNebula compatibility line.
 
-- current release: `7.0.2`
-- compatibility target: OpenNebula `7.0.x`
+- current release: `7.4.0`
+- compatibility targets: OpenNebula `7.4.x` and retained `7.0.x`

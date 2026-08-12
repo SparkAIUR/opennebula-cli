@@ -17,7 +17,7 @@ class AclService:
         self._transport = transport
 
     def list(self) -> list[AclRule]:
-        raw = self._transport.call("one.aclpool.info")
+        raw = self._transport.call("one.acl.info")
         items = ensure_list(object_get(raw, "ACL"))
         return [AclRule.from_raw(item) for item in items]
 

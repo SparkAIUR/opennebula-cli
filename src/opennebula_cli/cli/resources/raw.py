@@ -11,9 +11,9 @@ import typer
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.runtime import require_state
 from opennebula_cli.sdk.client import OneClient
+from opennebula_cli.transports.policy import is_read_only_method
 
 app = typer.Typer(no_args_is_help=True, help="Run guarded raw XML-RPC calls.")
-
 
 
 def _load_args(json_args: Path | None, json_args_text: str | None) -> list[Any]:
@@ -65,8 +65,9 @@ def raw_call(
 ) -> None:
     """Call an arbitrary XML-RPC method."""
 
-    if not unsafe:
-        raise typer.BadParameter("Raw calls require --i-understand-this-is-unsafe.")
+    read_only = is_read_only_method(method)
+    if not read_only and not unsafe:
+        raise typer.BadParameter("Raw mutations require --i-understand-this-is-unsafe.")
     args = _load_args(json_args, json_args_text)
     state = require_state(ctx)
     try:

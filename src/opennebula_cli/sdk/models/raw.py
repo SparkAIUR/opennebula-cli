@@ -13,5 +13,5 @@ class RawCallResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     method: str
-    args: list[Any]
+    transport: str = "raw"
     result: Any

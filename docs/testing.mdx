@@ -6,10 +6,11 @@ The repo uses layered validation so CLI behavior, service contracts, and live co
 
 ```bash
 uv run ruff check .
-uv run mypy src tests tools
+uv run mypy src
 uv run pytest
 uv run python tools/check_catalog_schema.py
-uv run python tools/check_release_version.py --tag v7.0.2
+uv run python tools/check_command_coverage.py
+uv run python tools/check_release_version.py --tag v7.4.0
 uv build
 ```
 
@@ -61,7 +62,7 @@ bash tools/e2e_run_live.sh
 
 The harness:
 
-1. bootstraps OpenNebula CE `7.0.x` on the remote Ubuntu `24.04` host
+1. bootstraps the selected OpenNebula compatibility line on the remote Ubuntu `24.04` host
 2. seeds disposable `e2e-*` fixtures through official OpenNebula CLI tools
 3. tunnels the XML-RPC endpoint back to the local checkout
 4. runs live read-only and mutation E2E from the current repo state
@@ -83,19 +84,25 @@ Fixture rules:
 - cleanup only removes `e2e-vm-*` VMs unless explicitly told to reset base fixtures
 - base fixtures are designed to be idempotent across repeated runs
 
-## Release validation for `7.0.2`
+## Release validation for `7.4.0`
 
-`7.0.2` maintains the OpenNebula `7.0.x` compatibility baseline validated against:
+The 7.4 candidate was validated in separate evidence layers:
 
-- Ubuntu `24.04`
-- OpenNebula CE `7.0.x`
-- single-node frontend
-- localhost `lxc` host
+- DR OpenNebula `7.4.0`, read-only only: authenticated version negotiation; list/show/full on VM, host, image, template, vnet, datastore, and cluster through PyONE and raw XML-RPC; ACL list; and OneFlow service/role state pairs
+- local OpenNebula `7.0.2` protocol fixture: PyONE and raw list/show plus clean rejection of 7.4-only capabilities
+- OpenNebula 7.4 source binding: generated from the tagged schema, imported successfully, and passed focused transport/service tests
+- local OneForm REST fixture: versioned routes, path encoding, redirect rejection, response limits, credential scoping, and preview isolation
+- mutation contracts: exact upstream signatures, context denial before contact, non-idempotent no-replay, and aggregate partial failures
 
-Live release coverage included:
+The historical disposable 7.0 environment evidence remains the real-server mutation baseline for:
 
-- read-only `list` and `show` for Wave 1 and Wave 2 families
-- disposable `template instantiate`
-- disposable `vm poweroff --wait`
+- `template instantiate`
+- `vm poweroff --wait`
 
-Workflow and state/context additions in `7.0.2` are validated through unit/integration layers and examples-driven command coverage, including `state ctx sync` auth-config to DB synchronization.
+No production mutation was performed for 7.4. OneForm was not configured in DR. New 7.4 mutations require disposable `e2e-*` validation before environment enablement.
+
+Run the sanitized named-context validator with:
+
+```bash
+uv run python tools/validate_readonly_context.py --context <name>
+```

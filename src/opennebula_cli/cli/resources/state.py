@@ -18,9 +18,10 @@ from opennebula_cli.auth.context_config import (
 )
 from opennebula_cli.cli.error_handlers import raise_cli_error
 from opennebula_cli.cli.runtime import require_state
+from opennebula_cli.cli.state import AppState
 from opennebula_cli.config.endpoints import derive_service_endpoint
 from opennebula_cli.sdk.exceptions import ConnectionError
-from opennebula_cli.state_store import LOCK_ACTION_CHOICES, StateStore, StoredContext
+from opennebula_cli.state_store import LOCK_ACTION_CHOICES, LockState, StateStore, StoredContext
 
 app = typer.Typer(no_args_is_help=True, help="Manage local CLI state, locks, and contexts.")
 lock_app = typer.Typer(no_args_is_help=True, help="Manage command execution locks.")
@@ -63,14 +64,38 @@ KNOWN_COMMANDS = (
 )
 
 
+def _context_payload(context: StoredContext, *, active_name: str | None) -> dict[str, object]:
+    return {
+        "name": context.name,
+        "active": active_name == context.name,
+        "endpoint": context.endpoint,
+        "username": context.username,
+        "version": context.version,
+    }
 
-def _print_context(context: StoredContext, *, active_name: str | None) -> None:
-    active_label = " (active)" if active_name == context.name else ""
-    typer.echo(f"name: {context.name}{active_label}")
-    typer.echo(f"endpoint: {context.endpoint}")
-    typer.echo(f"username: {context.username}")
-    if context.version:
-        typer.echo(f"version: {context.version}")
+
+def _emit_action(
+    state: AppState,
+    payload: dict[str, object],
+    *,
+    message: str,
+    resource: str,
+) -> None:
+    """Keep friendly terminal messages while honoring machine-output contracts."""
+
+    if state.output in {"table", "human"}:
+        typer.echo(message)
+        return
+    state.render(payload, resource=resource)
+
+
+def _lock_payload(lock_state: LockState) -> dict[str, object]:
+    return {
+        "enabled": lock_state.enabled,
+        "actions": sorted(lock_state.actions),
+        "commands": sorted(lock_state.commands),
+        "password_set": lock_state.password_set,
+    }
 
 
 def _use_auth_config_contexts() -> bool:
@@ -232,7 +257,7 @@ def _prompt_password() -> str | None:
     confirmation = typer.prompt("Confirm password", hide_input=True, show_default=False)
     if confirmation != password:
         raise typer.BadParameter("Password confirmation does not match.")
-    return password
+    return str(password)
 
 
 @lock_app.command("enable")
@@ -252,11 +277,13 @@ def lock_enable(
 ) -> None:
     """Enable command lock with action and command filters."""
 
-    require_state(ctx)  # keep state callback contract
+    state = require_state(ctx)
     try:
         selected_actions = _select_actions(actions)
         selected_commands = _select_commands(commands, selected_actions)
-        selected_password = password if password is not None else _prompt_password()
+        selected_password = password
+        if selected_password is None and state.output in {"table", "human"}:
+            selected_password = _prompt_password()
         if selected_password is not None and password is not None:
             confirmation = typer.prompt("Confirm password", hide_input=True, show_default=False)
             if confirmation != selected_password:
@@ -268,31 +295,45 @@ def lock_enable(
             commands=selected_commands,
             password=selected_password,
         )
-        typer.echo(
-            "Commands locked successfully. To unlock, use `one state lock disable`"
-            " and provide the password if one was set."
+        current = store.lock_state()
+        _emit_action(
+            state,
+            _lock_payload(current),
+            message=(
+                "Commands locked successfully. To unlock, use `one state lock disable`"
+                " and provide the password if one was set."
+            ),
+            resource="lock",
         )
     except Exception as exc:
         raise_cli_error(exc)
 
 
 @lock_app.command("disable")
-def lock_disable(ctx: typer.Context) -> None:
+def lock_disable(
+    ctx: typer.Context,
+    yes: bool = typer.Option(False, "--yes", "-y", help="Disable without confirmation."),
+) -> None:
     """Disable active command lock."""
 
-    require_state(ctx)  # keep state callback contract
+    state = require_state(ctx)
     try:
         store = StateStore()
         current = store.lock_state()
         if not current.enabled:
-            typer.echo("No active lock found.")
+            _emit_action(
+                state,
+                _lock_payload(current),
+                message="No active lock found.",
+                resource="lock",
+            )
             return
 
         details = (
             f"actions={','.join(sorted(current.actions))}; "
             f"commands={','.join(sorted(current.commands))}"
         )
-        should_disable = typer.confirm(
+        should_disable = yes or typer.confirm(
             f"A lock is currently active ({details}). Do you want to disable it?",
             default=True,
         )
@@ -306,7 +347,23 @@ def lock_disable(ctx: typer.Context) -> None:
                 raise typer.BadParameter("Incorrect password. Lock remains active.")
 
         store.disable_lock()
-        typer.echo("Lock disabled successfully. The commands are now available for execution.")
+        _emit_action(
+            state,
+            _lock_payload(store.lock_state()),
+            message="Lock disabled successfully. The commands are now available for execution.",
+            resource="lock",
+        )
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@lock_app.command("status")
+def lock_status(ctx: typer.Context) -> None:
+    """Show the current command lock without exposing its password digest."""
+
+    state = require_state(ctx)
+    try:
+        state.render(_lock_payload(StateStore().lock_state()), resource="lock")
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -331,7 +388,7 @@ def ctx_set(
 ) -> None:
     """Create or update a local context and mark it active."""
 
-    require_state(ctx)  # keep state callback contract
+    state = require_state(ctx)
     try:
         target_name = name or typer.prompt("Enter a name for this context")
         target_endpoint = endpoint or typer.prompt("Enter the OpenNebula endpoint URL")
@@ -361,9 +418,14 @@ def ctx_set(
                     version=version,
                 )
             )
-        typer.echo(
-            f"Context '{target_name}' set successfully. "
-            f"You can switch to this context using `one state ctx use {target_name}`."
+        _emit_action(
+            state,
+            {"name": target_name, "active": True, "updated": True},
+            message=(
+                f"Context '{target_name}' set successfully. "
+                f"You can switch to this context using `one state ctx use {target_name}`."
+            ),
+            resource="context-action",
         )
     except Exception as exc:
         raise_cli_error(exc)
@@ -373,23 +435,26 @@ def ctx_set(
 def ctx_use(ctx: typer.Context, context_name: str) -> None:
     """Switch active context by name."""
 
-    require_state(ctx)  # keep state callback contract
+    state = require_state(ctx)
     try:
         if _use_auth_config_contexts():
             ok = set_auth_current_context(context_name)
             if not ok:
-                raise typer.BadParameter(
-                    f"Context '{context_name}' was not found in auth config."
-                )
+                raise typer.BadParameter(f"Context '{context_name}' was not found in auth config.")
         else:
             store = StateStore()
             if not store.use_context(context_name):
                 raise typer.BadParameter(
                     f"Context '{context_name}' was not found in state database."
                 )
-        typer.echo(
-            f"Context switched to '{context_name}'. "
-            "Subsequent commands will use this context for authentication and API interactions."
+        _emit_action(
+            state,
+            {"name": context_name, "active": True},
+            message=(
+                f"Context switched to '{context_name}'. "
+                "Subsequent commands will use this context for authentication and API interactions."
+            ),
+            resource="context-action",
         )
     except Exception as exc:
         raise_cli_error(exc)
@@ -399,7 +464,7 @@ def ctx_use(ctx: typer.Context, context_name: str) -> None:
 def ctx_get(ctx: typer.Context) -> None:
     """Show the currently active context."""
 
-    require_state(ctx)
+    state = require_state(ctx)
     try:
         if _use_auth_config_contexts():
             config = load_auth_config()
@@ -421,9 +486,9 @@ def ctx_get(ctx: typer.Context) -> None:
             current = store.get_active_context()
             active_name = store.active_context_name()
         if current is None:
-            typer.echo("No active context is set.")
+            state.render(None, resource="context")
             return
-        _print_context(current, active_name=active_name)
+        state.render(_context_payload(current, active_name=active_name), resource="context")
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -439,20 +504,17 @@ def ctx_list(
 ) -> None:
     """List all stored contexts."""
 
-    require_state(ctx)
+    state = require_state(ctx)
     try:
         selected_source = _ctx_source(source)
         contexts, active_name = _contexts_for_source(selected_source)
         if not contexts:
-            typer.echo("No contexts found.")
+            state.render([], resource="context")
             return
-        for context in contexts:
-            suffix = " (active)" if context.name == active_name else ""
-            version = f", version={context.version}" if context.version else ""
-            typer.echo(
-                f"- {context.name}{suffix}: endpoint={context.endpoint}, "
-                f"user={context.username}{version}"
-            )
+        state.render(
+            [_context_payload(context, active_name=active_name) for context in contexts],
+            resource="context",
+        )
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -471,12 +533,12 @@ def ctx_validate(
 ) -> None:
     """Validate endpoint reachability for one or more contexts."""
 
-    require_state(ctx)
+    state = require_state(ctx)
     try:
         selected_source = _ctx_source(source)
         contexts, active_name = _contexts_for_source(selected_source)
         if not contexts:
-            typer.echo("No contexts found.")
+            state.render([], resource="context-validation")
             return
 
         selected_contexts = contexts
@@ -494,15 +556,54 @@ def ctx_validate(
                     "Use `one state ctx use <name>` or pass --all/--context."
                 )
 
-        total = 0
-        passed = 0
+        results: list[dict[str, object]] = []
         for item in selected_contexts:
-            typer.echo(f"Context: {item.name}")
             endpoint_overrides = (
                 _auth_context_endpoints(item.name) if selected_source == "auth" else {}
             )
+            try:
+                from opennebula_cli.config.loader import resolve_runtime_config
+                from opennebula_cli.sdk.client import OneClient
+
+                config = resolve_runtime_config(
+                    profile_name=None,
+                    context_name=item.name,
+                    require_context=item.name,
+                    endpoint=None,
+                    auth=None,
+                    user=None,
+                    password=None,
+                    output="json",
+                    no_pager=True,
+                    timeout=timeout,
+                    no_verify=False,
+                    cert_dir=None,
+                    verbose=0,
+                    debug=False,
+                )
+                info = OneClient.from_config(config).server_info()
+                results.append(
+                    {
+                        "context": item.name,
+                        "service": "xmlrpc",
+                        "ok": True,
+                        "authenticated": True,
+                        "server_version": info.version,
+                        "profile": info.profile,
+                        "endpoint": info.endpoint,
+                    }
+                )
+            except Exception as exc:
+                results.append(
+                    {
+                        "context": item.name,
+                        "service": "xmlrpc",
+                        "ok": False,
+                        "authenticated": False,
+                        "detail": str(exc),
+                    }
+                )
             endpoints: list[tuple[str, str | None]] = [
-                ("xmlrpc", item.endpoint),
                 (
                     "oneflow",
                     derive_service_endpoint(
@@ -530,19 +631,29 @@ def ctx_validate(
             ]
 
             for label, endpoint_url in endpoints:
-                total += 1
-                typer.echo(f"  checking {label}: {endpoint_url}")
                 if endpoint_url is None:
-                    typer.echo("    FAIL  unable to resolve endpoint")
+                    results.append(
+                        {
+                            "context": item.name,
+                            "service": label,
+                            "ok": False,
+                            "detail": "unresolved",
+                        }
+                    )
                     continue
                 ok, detail = _check_endpoint(endpoint_url, timeout=timeout)
-                if ok:
-                    passed += 1
-                    typer.echo(f"    PASS  {detail}")
-                else:
-                    typer.echo(f"    FAIL  {detail}")
+                results.append(
+                    {
+                        "context": item.name,
+                        "service": label,
+                        "ok": ok,
+                        "authenticated": False,
+                        "endpoint": endpoint_url,
+                        "detail": detail,
+                    }
+                )
 
-        typer.echo(f"Validation complete: {passed}/{total} checks passed")
+        state.render(results, resource="context-validation")
     except ConnectionError as exc:
         raise_cli_error(exc)
     except Exception as exc:
@@ -553,7 +664,7 @@ def ctx_validate(
 def ctx_show(ctx: typer.Context, context_name: str) -> None:
     """Show details for a named context."""
 
-    require_state(ctx)
+    state = require_state(ctx)
     try:
         if _use_auth_config_contexts():
             config = load_auth_config()
@@ -580,7 +691,7 @@ def ctx_show(ctx: typer.Context, context_name: str) -> None:
             raise typer.BadParameter(
                 f"Context '{context_name}' was not found in {not_found_source}."
             )
-        _print_context(context, active_name=active_name)
+        state.render(_context_payload(context, active_name=active_name), resource="context")
     except Exception as exc:
         raise_cli_error(exc)
 
@@ -589,12 +700,17 @@ def ctx_show(ctx: typer.Context, context_name: str) -> None:
 def ctx_sync(ctx: typer.Context) -> None:
     """Sync auth config contexts into the local state database."""
 
-    require_state(ctx)
+    state = require_state(ctx)
     try:
         count, active = _sync_auth_contexts_to_state_db()
-        typer.echo(
-            f"Synced {count} context(s) from auth config to state database. "
-            f"Active context: {active}."
+        _emit_action(
+            state,
+            {"synced": count, "active_context": active},
+            message=(
+                f"Synced {count} context(s) from auth config to state database. "
+                f"Active context: {active}."
+            ),
+            resource="context-action",
         )
     except Exception as exc:
         raise_cli_error(exc)

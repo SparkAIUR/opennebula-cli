@@ -54,7 +54,9 @@ contexts:
     assert resolved.auth.username == "file-user"
     assert resolved.auth.secret == "file-pass"
     assert resolved.auth.source == "auth-config:staging"
-    assert resolved.connection.service_endpoints["oneflow"] == "https://staging-flow.example.com:2474"
+    assert (
+        resolved.connection.service_endpoints["oneflow"] == "https://staging-flow.example.com:2474"
+    )
     assert resolved.connection.service_endpoints["firestone"] == "https://staging.example.com:2616"
     assert resolved.connection.service_endpoints["web"] == "https://staging.example.com:9869"
     assert resolved.connection.service_config == {"oneflow_host": "localhost"}

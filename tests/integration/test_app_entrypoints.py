@@ -69,8 +69,8 @@ def test_recover_requires_exactly_one_action_flag(runner) -> None:
     assert "Select exactly one" in multiple.output
 
 
-def test_raw_call_requires_unsafe_flag_before_config_resolution(runner) -> None:
-    result = runner.invoke(app, ["raw", "call", "one.vm.info", "--json-args-text", "[42]"])
+def test_raw_mutation_requires_unsafe_flag_before_config_resolution(runner) -> None:
+    result = runner.invoke(app, ["raw", "call", "one.vm.delete", "--json-args-text", "[42]"])
     assert result.exit_code != 0
     assert "i-understand-this-is-unsafe" in result.output
 

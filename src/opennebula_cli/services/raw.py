@@ -18,5 +18,13 @@ class RawService:
     def call(self, method: str, args: list[Any]) -> RawCallResult:
         """Invoke an arbitrary XML-RPC method."""
 
-        result = self._transport.call(method, *args)
-        return RawCallResult(method=method, args=args, result=normalize_value(result))
+        raw_call = getattr(self._transport, "call_raw", None)
+        result = (
+            raw_call(method, *args) if callable(raw_call) else self._transport.call(method, *args)
+        )
+        transport_name = getattr(self._transport, "name", "unknown")
+        return RawCallResult(
+            method=method,
+            transport=transport_name,
+            result=normalize_value(result),
+        )

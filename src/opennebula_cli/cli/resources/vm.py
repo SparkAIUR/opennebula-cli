@@ -13,7 +13,6 @@ from opennebula_cli.config.models import CANONICAL_OUTPUT_MODE_HELP
 app = typer.Typer(no_args_is_help=True, help="Manage virtual machines.")
 
 
-
 def _parse_duration(value: str) -> float:
     normalized = value.strip().lower()
     if not normalized:
@@ -64,7 +63,11 @@ def show_vm(
 
     state = require_state(ctx)
     try:
-        result = state.client().vm.show_full(vm_id) if full else state.client().vm.show(vm_id)
+        result = (
+            state.client().vm.show_full(vm_id)
+            if full or state.full or state.official_schema
+            else state.client().vm.show(vm_id)
+        )
         state.render(result, resource="vm", output_override=output)
     except Exception as exc:
         raise_cli_error(exc)
@@ -250,6 +253,84 @@ def resume_vm(ctx: typer.Context, vm_id: int) -> None:
     state = require_state(ctx)
     try:
         state.render(state.client().vm.action(vm_id, "resume"), resource="vm")
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@app.command("exec")
+def exec_vm(
+    ctx: typer.Context,
+    vm_ids: str,
+    command: str,
+    stdin: str = typer.Option("", "--stdin", help="Text passed to command stdin."),
+) -> None:
+    """Execute a command in one or more running VMs (OpenNebula 7.4)."""
+
+    state = require_state(ctx)
+    try:
+        client = state.client()
+        client.require_capability("one.vm.exec")
+        from opennebula_cli.services.official import parse_id_list
+
+        state.render(
+            [client.vm.exec(vm_id, command, stdin=stdin) for vm_id in parse_id_list(vm_ids)]
+        )
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@app.command("exec-retry")
+def exec_retry_vm(ctx: typer.Context, vm_ids: str) -> None:
+    """Retry the last guest command (OpenNebula 7.4)."""
+
+    state = require_state(ctx)
+    try:
+        client = state.client()
+        client.require_capability("one.vm.retryexec")
+        from opennebula_cli.services.official import parse_id_list
+
+        state.render([client.vm.exec_retry(vm_id) for vm_id in parse_id_list(vm_ids)])
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@app.command("exec-cancel")
+def exec_cancel_vm(ctx: typer.Context, vm_ids: str) -> None:
+    """Cancel an active guest command (OpenNebula 7.4)."""
+
+    state = require_state(ctx)
+    try:
+        client = state.client()
+        client.require_capability("one.vm.cancelexec")
+        from opennebula_cli.services.official import parse_id_list
+
+        state.render([client.vm.exec_cancel(vm_id) for vm_id in parse_id_list(vm_ids)])
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@app.command("vmgroup-add")
+def vmgroup_add_vm(ctx: typer.Context, vm_id: int, vmgroup_id: int, role: str) -> None:
+    """Add a VM to a VM group (OpenNebula 7.4)."""
+
+    state = require_state(ctx)
+    try:
+        client = state.client()
+        client.require_capability("one.vm.vmgroupadd")
+        state.render(client.vm.vmgroup_add(vm_id, vmgroup_id, role), resource="vm")
+    except Exception as exc:
+        raise_cli_error(exc)
+
+
+@app.command("vmgroup-del")
+def vmgroup_del_vm(ctx: typer.Context, vm_id: int) -> None:
+    """Remove a VM from its VM group (OpenNebula 7.4)."""
+
+    state = require_state(ctx)
+    try:
+        client = state.client()
+        client.require_capability("one.vm.vmgroupdel")
+        state.render(client.vm.vmgroup_del(vm_id), resource="vm")
     except Exception as exc:
         raise_cli_error(exc)
 

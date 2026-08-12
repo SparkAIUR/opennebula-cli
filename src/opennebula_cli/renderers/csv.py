@@ -14,12 +14,13 @@ def render_csv(data: Any, *, ctx: RenderContext) -> None:
 
     rows = to_primitive(data)
     if not isinstance(rows, list) or not rows:
-        ctx.console.print("")
+        ctx.console.file.write("\n")
         return
     fieldnames = list(rows[0].keys())
     buffer = io.StringIO()
     writer = csv.DictWriter(buffer, fieldnames=fieldnames)
-    writer.writeheader()
+    if not ctx.no_header:
+        writer.writeheader()
     for row in rows:
         writer.writerow(row)
-    ctx.console.print(buffer.getvalue().rstrip())
+    ctx.console.file.write(f"{buffer.getvalue().rstrip()}\n")

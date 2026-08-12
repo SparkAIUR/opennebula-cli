@@ -26,14 +26,16 @@ def _describe_flow_command(command_name: str) -> str:
     )
 
 
-
 def _make_official_command(command_name: str) -> Any:
     def official_command(ctx: typer.Context) -> None:
         """Execute a OneFlow compatibility command through the REST parity adapter."""
 
         state = require_state(ctx)
         try:
-            result = state.client().flow.run_official(command_name, list(ctx.args))
+            client = state.client()
+            if command_name == "sched-delete":
+                client.require_capability("oneflow.sched_delete")
+            result = client.flow.run_official(command_name, list(ctx.args))
             state.render(result, resource="flow")
         except Exception as exc:
             raise_cli_error(exc)
@@ -57,6 +59,7 @@ for _command_name in [
     "remove-role",
     "rename",
     "scale",
+    "sched-delete",
     "service",
     "show",
     "top",

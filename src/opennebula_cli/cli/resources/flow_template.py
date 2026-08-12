@@ -27,9 +27,6 @@ def _describe_flow_template_command(command_name: str) -> str:
     )
 
 
-
-
-
 def _make_official_command(command_name: str) -> Any:
     def official_command(ctx: typer.Context) -> None:
         """Execute a OneFlow-template command through the parity REST adapter."""

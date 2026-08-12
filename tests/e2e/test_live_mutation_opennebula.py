@@ -17,7 +17,7 @@ def _live_env() -> dict[str, str]:
     endpoint = os.environ.get("ONE_XMLRPC")
     auth_path = os.environ.get("ONE_AUTH")
     if not endpoint or not auth_path:
-      pytest.skip("ONE_XMLRPC and ONE_AUTH must be set for live E2E tests.")
+        pytest.skip("ONE_XMLRPC and ONE_AUTH must be set for live E2E tests.")
     if not Path(auth_path).exists():
         pytest.skip(f"ONE_AUTH path does not exist: {auth_path}")
     env = os.environ.copy()

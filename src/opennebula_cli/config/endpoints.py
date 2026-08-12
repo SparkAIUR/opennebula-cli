@@ -10,6 +10,8 @@ SERVICE_PORTS: dict[str, int] = {
     "web": 9869,
     "firestone": 2616,
     "oneflow": 2474,
+    # OneForm is intentionally explicit-only. Its port and proxy path are deployment-defined.
+    "oneform": 13013,
 }
 
 

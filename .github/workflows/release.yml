@@ -26,6 +26,13 @@ jobs:
       - name: Validate release tag
         run: uv run python tools/check_release_version.py
 
+      - name: Static checks
+        run: |
+          uv run ruff check .
+          uv run mypy src
+          uv run python tools/check_catalog_schema.py
+          uv run python tools/check_command_coverage.py
+
       - name: Test
         run: uv run pytest
 
@@ -43,6 +50,9 @@ jobs:
 
       - name: Build
         run: uv build
+
+      - name: Validate distributions
+        run: uv run --with twine twine check dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

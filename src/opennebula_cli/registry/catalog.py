@@ -6,7 +6,7 @@ from pathlib import Path
 
 import yaml
 
-from opennebula_cli.registry.schema import FamilyCatalog
+from opennebula_cli.registry.schema import FamilyCatalog, VersionProfileCatalog
 
 
 def load_catalog(path: Path) -> FamilyCatalog:
@@ -26,3 +26,10 @@ def load_catalogs(root: Path) -> dict[str, FamilyCatalog]:
         catalog = load_catalog(path)
         catalogs[catalog.family] = catalog
     return catalogs
+
+
+def load_version_profile(path: Path) -> VersionProfileCatalog:
+    """Load a complete, independently materialized server-line profile."""
+
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return VersionProfileCatalog.model_validate(data)

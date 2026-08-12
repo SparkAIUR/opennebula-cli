@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "opennebula-cli"
-version = "7.0.2"
+version = "7.4.0"
 description = "Modern Python CLI and SDK for OpenNebula"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -30,7 +30,7 @@ dependencies = [
   "platformdirs>=4.2,<5",
   "pydantic>=2.12.5,<3",
   "PyYAML>=6.0,<7",
-  "pyone>=7.0.2,<8",
+  "pyone>=7.3.80,<7.5",
   "six>=1.17.0,<2",
   "rich>=14.3.3,<15",
   "typer>=0.24.1,<0.25",
@@ -72,6 +72,11 @@ oneswap = "opennebula_cli.compat.oneswap:main"
 oneshowback = "opennebula_cli.compat.oneshowback:main"
 oneacct = "opennebula_cli.compat.oneacct:main"
 onegather = "opennebula_cli.compat.onegather:main"
+oneform = "opennebula_cli.compat.oneform:main"
+oneprovider = "opennebula_cli.compat.oneprovider:main"
+oneprovider-template = "opennebula_cli.compat.oneprovider_template:main"
+oneprovision = "opennebula_cli.compat.oneprovision:main"
+oneprovision-template = "opennebula_cli.compat.oneprovision_template:main"
 
 [project.entry-points."opennebula_cli.plugins"]
 builtin = "opennebula_cli.plugins.builtin:plugin"

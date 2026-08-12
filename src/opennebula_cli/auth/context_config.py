@@ -131,7 +131,8 @@ def save_auth_config(config: AuthConfigFile) -> None:
     """Persist auth config to OPENNEBULA_CLI_AUTH_CONFIG path."""
 
     target = auth_config_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
+    target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(target.parent, 0o700)
 
     contexts_payload: list[dict[str, object]] = []
     for context in config.contexts:
@@ -156,6 +157,7 @@ def save_auth_config(config: AuthConfigFile) -> None:
         "contexts": contexts_payload,
     }
     target.write_text(yaml.safe_dump(serialized, sort_keys=False), encoding="utf-8")
+    os.chmod(target, 0o600)
 
 
 def upsert_auth_context(context: FileContext, *, set_current: bool = True) -> AuthConfigFile:

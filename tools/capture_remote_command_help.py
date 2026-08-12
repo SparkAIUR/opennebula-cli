@@ -86,7 +86,7 @@ def run_remote_help(host: str, command: str, ssh_bin: str = "ssh") -> tuple[int,
 
 
 def render_markdown(host: str, commands_file: Path, rows: list[tuple[str, int, str]]) -> str:
-    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     lines = [
         "# Command Help Output Capture",
         "",

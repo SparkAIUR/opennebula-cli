@@ -19,6 +19,9 @@ class RenderContext:
     interactive: bool
     no_pager: bool
     resource: str | None = None
+    compact: bool = False
+    no_header: bool = False
+    official_schema: bool = False
 
 
 def to_primitive(data: Any) -> Any:

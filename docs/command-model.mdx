@@ -38,7 +38,7 @@ onecluster --output yaml show 0
 
 ## Coverage
 
-The CLI exposes every captured OpenNebula 7.0.2 command for these families:
+The CLI ships complete, independent command profiles for OpenNebula 7.0 and 7.4. The static help tree is their union; authenticated capability checks reject commands unavailable on the selected server line before the operation call.
 
 - `vm`
 - `host`
@@ -48,6 +48,7 @@ The CLI exposes every captured OpenNebula 7.0.2 command for these families:
 - `datastore`
 - `cluster`
 - `flow-template` (compatible `oneflow-template` wrapper)
+- `form`, `provider`, `provider-template`, `provision`, and `provision-template` on 7.4
 
 Typed commands such as `list`, `show`, `template instantiate`, recovery helpers, and selected VM lifecycle operations return normalized SDK models. The broader official surface is routed through a generic service runner that preserves command availability and core XML-RPC behavior while deeper typed models are added incrementally.
 
@@ -56,10 +57,14 @@ Typed commands such as `list`, `show`, `template instantiate`, recovery helpers,
 Global options are handled by the root application:
 
 - `--profile`
+- `--context`
+- `--require-context`
+- `--backend`
 - `--endpoint`
 - `--auth`
 - `--user`
 - `--password`
+- `--password-stdin`
 - `--output`
 - `--no-pager`
 - `--timeout`
@@ -67,6 +72,8 @@ Global options are handled by the root application:
 - `--cert-dir`
 - `--verbose`
 - `--debug`
+- `--compact`, `--value`, `--select`, `--filter`, `--sort`, `--no-header`
+- `--full`, `--official-schema`
 
 Prefer placing them before the resource verb.
 
@@ -90,6 +97,7 @@ Supported output modes:
 
 - `table`
 - `json`
+- `jsonl`
 - `yaml`
 - `xml`
 - `csv`
@@ -99,7 +107,14 @@ Guidance:
 
 - use `table` for interactive operator sessions
 - use `json`, `yaml`, `csv`, or `raw` for automation
+- use `jsonl` for streaming one object per line
 - prefer `--output` at the root position for consistency
+
+The views are distinct contracts:
+
+- default: stable normalized typed model
+- `--full`: lossless normalized backend payload
+- `--official-schema`: upstream key names and nesting; XML repeats upstream vector element names
 
 ## Wait behavior
 
@@ -119,9 +134,9 @@ one --output json vm wait 42 --state ACTIVE --lcm-state RUNNING --timeout 10m
 one workflow vm apply bulk-init.yaml --wait-ready --timeout 600 --poll-interval 2
 ```
 
-## Local validation boundary
+## Validation boundary
 
-The parity checks for this pass are local-only:
+Static and local checks:
 
 ```bash
 uv run python tools/check_command_coverage.py
@@ -129,4 +144,4 @@ uv run python tools/check_catalog_schema.py
 uv run pytest
 ```
 
-Do not run live credential validation until a suitable disposable OpenNebula dev environment is available.
+Authenticated read-only validation for named contexts is implemented by `tools/validate_readonly_context.py`. Mutation validation remains a separate gate and must use a suitable disposable environment with `e2e-*` resources; never infer mutation safety from read-only success.

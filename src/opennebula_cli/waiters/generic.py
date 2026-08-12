@@ -57,8 +57,7 @@ def wait_for(
                 )
             if time.monotonic() > deadline:
                 raise TimeoutError(
-                    f"Timed out waiting for {resource} {resource_id} "
-                    "to reach target state."
+                    f"Timed out waiting for {resource} {resource_id} to reach target state."
                 )
             time.sleep(poll_interval)
     finally:

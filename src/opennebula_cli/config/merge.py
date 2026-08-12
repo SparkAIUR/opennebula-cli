@@ -41,6 +41,8 @@ def _resolve_contextual_credentials() -> tuple[
     str | None,
     dict[str, str],
     dict[str, str],
+    str | None,
+    str | None,
 ]:
     """Resolve endpoint and auth from auth.yaml or state DB contexts."""
 
@@ -54,6 +56,8 @@ def _resolve_contextual_credentials() -> tuple[
                 f"auth-config:{current.name}",
                 dict(current.endpoints or {}),
                 dict(current.config or {}),
+                current.name,
+                current.version,
             )
 
     context = StateStore().get_active_context()
@@ -64,13 +68,52 @@ def _resolve_contextual_credentials() -> tuple[
             f"state-context:{context.name}",
             {},
             {},
+            context.name,
+            context.version,
         )
-    return (None, None, None, {}, {})
+    return (None, None, None, {}, {}, None, None)
+
+
+def _resolve_named_context(
+    name: str | None,
+) -> tuple[
+    str | None, str | None, str | None, dict[str, str], dict[str, str], str | None, str | None
+]:
+    """Resolve a context for one invocation without changing active state."""
+
+    if name is None:
+        return _resolve_contextual_credentials()
+    auth_config = load_auth_config()
+    selected = auth_config.resolve_named(name) if auth_config else None
+    if selected is not None:
+        return (
+            selected.endpoint,
+            f"literal:{selected.auth.username}:{selected.auth.password}",
+            f"auth-config:{selected.name}",
+            dict(selected.endpoints or {}),
+            dict(selected.config or {}),
+            selected.name,
+            selected.version,
+        )
+    stored = StateStore().get_context(name)
+    if stored is not None:
+        return (
+            stored.endpoint,
+            f"literal:{stored.username}:{stored.password}",
+            f"state-context:{stored.name}",
+            {},
+            {},
+            stored.name,
+            stored.version,
+        )
+    raise ConnectionError(f"Context '{name}' was not found.")
 
 
 def merge_runtime_config(
     *,
     profile_name: str | None,
+    context_name: str | None = None,
+    require_context: str | None = None,
     profile: ProfileConfig | None,
     cli_endpoint: str | None,
     cli_auth: str | None,
@@ -87,9 +130,20 @@ def merge_runtime_config(
     """Merge CLI, profile, env, and defaults into a resolved config."""
 
     active_profile = profile or ProfileConfig()
-    context_endpoint, context_auth, context_source, context_service_endpoints, context_config = (
-        _resolve_contextual_credentials()
-    )
+    (
+        context_endpoint,
+        context_auth,
+        context_source,
+        context_service_endpoints,
+        context_config,
+        selected_context_name,
+        context_version,
+    ) = _resolve_named_context(context_name)
+    if require_context is not None and selected_context_name != require_context:
+        actual = selected_context_name or "<none>"
+        raise ConnectionError(
+            f"Required context '{require_context}' does not match selected context '{actual}'."
+        )
     endpoint = _pick(
         cli_endpoint,
         active_profile.endpoint,
@@ -107,10 +161,14 @@ def merge_runtime_config(
         os.getenv("ONE_XMLRPC_TIMEOUT"),
         60.0,
     )
-    verify_ssl = not cli_no_verify if cli_no_verify else _pick(
-        active_profile.verify_ssl,
-        not (_env_bool("ONE_DISABLE_SSL_VERIFY") or False),
-        True,
+    verify_ssl = (
+        not cli_no_verify
+        if cli_no_verify
+        else _pick(
+            active_profile.verify_ssl,
+            not (_env_bool("ONE_DISABLE_SSL_VERIFY") or False),
+            True,
+        )
     )
     cert_dir = _pick(cli_cert_dir, active_profile.cert_dir, os.getenv("ONE_CERT_DIR"))
     output_value = cli_output or active_profile.output or "table"
@@ -135,23 +193,33 @@ def merge_runtime_config(
         env_auth=os.getenv("ONE_AUTH"),
         default_auth_path=default_auth_path(),
     )
+    if os.getenv("ONEFORM_URL"):
+        context_service_endpoints["oneform"] = str(os.environ["ONEFORM_URL"])
     connection = ConnectionSettings(
         endpoint=str(endpoint),
         timeout=float(cast(float | str, timeout_value)),
         verify_ssl=bool(verify_ssl),
         cert_dir=str(cert_dir) if cert_dir else None,
         service_endpoints={
-            service: derive_service_endpoint(
-                str(endpoint),
-                service=service,
-                explicit=context_service_endpoints.get(service),
+            service: (
+                context_service_endpoints[service].rstrip("/")
+                if service == "oneform"
+                else derive_service_endpoint(
+                    str(endpoint), service=service, explicit=context_service_endpoints.get(service)
+                )
             )
             for service in SERVICE_PORTS
+            if service != "oneform" or service in context_service_endpoints
         },
         service_config=context_config,
     )
     return ResolvedConfig(
         profile=profile_name,
+        context_name=selected_context_name,
+        context_version=context_version,
+        mutation_policy=(
+            "deny" if context_config.get("mutation_policy", "allow").lower() == "deny" else "allow"
+        ),
         connection=connection,
         auth=auth,
         output=output_settings,

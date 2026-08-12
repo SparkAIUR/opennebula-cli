@@ -11,7 +11,7 @@ The implementation is organized as a layered CLI and SDK so operator workflows, 
 3. `auth/` and `config/`
    Profile loading, auth resolution, env precedence, and runtime configuration.
 4. `transports/`
-   PyONE-backed XML-RPC transport with raw XML-RPC fallback.
+   PyONE and raw XML-RPC routing, pre-I/O policy enforcement, plus explicit plugin REST transport.
 5. `services/`
    Reusable typed operations consumed by both the CLI and the SDK, including workflow rendering and VM initialization helpers.
 6. `sdk/`
@@ -21,9 +21,9 @@ The implementation is organized as a layered CLI and SDK so operator workflows, 
 8. `waiters/`
    Polling-based lifecycle waiting for long-running operations.
 9. `registry/` and `catalogs/`
-   Versioned command metadata and parity tracking.
+   Independently materialized 7.0 and 7.4 command profiles, authenticated negotiation, and parity tracking.
 10. `plugins/`
-    Future extension boundary.
+    OneFlow, OneGate, and OneForm extension boundaries.
 11. `dev/`
     Local maintainer tooling such as the private context store and live capture support.
 
@@ -35,6 +35,9 @@ The implementation is organized as a layered CLI and SDK so operator workflows, 
 - implement reusable logic in services first
 - track parity explicitly in catalogs
 - keep read-only live observation tooling aggressively redacted
+- choose a backend before I/O and never replay a failed non-idempotent request
+- derive OneFlow-compatible endpoints only where defined; require an explicit OneForm endpoint
+- enforce read-only context policy at the service and transport boundaries
 
 ## Current coverage
 
@@ -47,6 +50,8 @@ The implementation is organized as a layered CLI and SDK so operator workflows, 
 - `cluster` (read-only)
 - `workflow template` (`init`, `render`, `import`, `apply`)
 - `workflow vm` (`init`, `apply`)
+- 7.4 VM exec/VM-group, cluster-plan, group-VLAN, and OneFlow schedule operations
+- OneForm driver, provider, and provision services with guarded template previews
 
 ## Why this matters for DevOps users
 

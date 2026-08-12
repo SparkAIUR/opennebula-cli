@@ -5,8 +5,8 @@
 - Repo: `https://github.com/SparkAIUR/opennebula-cli`
 - PyPI package: `opennebula-cli`
 - Import package: `opennebula_cli`
-- Current public release: `7.0.2`
-- Compatibility target for this release: OpenNebula `7.0.x`
+- Current public release: `7.4.0`
+- Compatibility targets: OpenNebula `7.4.x` and retained `7.0.x`
 
 ## Mission
 
@@ -89,22 +89,25 @@ Workflow automation:
 - `workflow template`: `init`, `render`, `import`, `apply`
 - `workflow vm`: `init`, `apply`
 
-## Validation state for `7.0.2`
+## Validation state for `7.4.0`
 
-This release was validated against a disposable OpenNebula CE `7.0.x` environment on Ubuntu `24.04` with a localhost `lxc` host.
+This release was validated read-only against DR OpenNebula `7.4.0` through both PyONE and raw XML-RPC. It also passed a local dual-backend `7.0.2` protocol fixture, generated bindings from the OpenNebula `7.4.0` source schema, and a local OneForm REST contract fixture.
 
-Live-validated:
+DR read-only validated:
 
 - read-only `list` and `show` for `vm`, `host`, `image`, `template`, `vnet`, `datastore`, and `cluster`
-- disposable mutation flows for:
-  - `template instantiate`
-  - `vm poweroff --wait`
+- ACL and OneFlow list operations
+- authenticated server version negotiation and version-profile selection
 
-Still implemented but not a release blocker for live mutation validation:
+Historical disposable 7.0 mutation evidence remains available for `template instantiate` and `vm poweroff --wait`. No production mutation was performed for 7.4. OneForm was not configured in DR, so its 7.4 routes were validated locally only.
+
+Still requiring disposable 7.4 mutation validation before environment enablement:
 
 - `host flush`
 - `image delete`
 - `template delete`
+- VM exec/retry/cancel and VM-group operations
+- cluster optimization plans and group VLAN operations
 
 ## Canonical repo rules
 
@@ -168,7 +171,8 @@ uv sync --group dev
 uv run one --help
 uv run pytest
 uv run python tools/check_catalog_schema.py
-uv run python tools/check_release_version.py --tag v7.0.2
+uv run python tools/check_command_coverage.py
+uv run python tools/check_release_version.py --tag v7.4.0
 uv build
 ```
 
@@ -187,12 +191,13 @@ ONE_E2E_TARGET_ENDPOINT=root@vm.example.com \
 ONE_E2E_REMOTE_ROOT=/mnt/opennebula-cli-e2e \
 ONE_E2E_MODE=manual-frontend \
 ONE_E2E_VALIDATE_LOCAL=1 \
+OPENNEBULA_SERIES=7.4 \
 bash tools/e2e_run_live.sh
 ```
 
 ## Near-term roadmap
 
-1. Maintain `7.0.x` compatibility quality and improve remaining live mutation coverage.
-2. Expand Wave 2 beyond read-only commands.
-3. Add Wave 3 and Wave 4 command families.
-4. Introduce the OneFlow plugin boundary and first-party plugin support.
+1. Add disposable 7.4 mutation evidence for new typed operations.
+2. Validate OneForm against a configured disposable 7.4 service.
+3. Deepen typed models for broad official compatibility commands.
+4. Maintain the retained 7.0 profile while following future upstream profiles.

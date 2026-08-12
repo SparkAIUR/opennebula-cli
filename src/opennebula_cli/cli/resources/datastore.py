@@ -1,6 +1,5 @@
 """Datastore commands."""
 
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
@@ -9,7 +8,6 @@ from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage datastores.")
-
 
 
 @app.command(
@@ -35,7 +33,13 @@ def show_datastore(ctx: typer.Context, datastore_id: int) -> None:
 
     state = require_state(ctx)
     try:
-        state.render(state.client().datastore.show(datastore_id), resource="datastore")
+        service = state.client().datastore
+        result = (
+            service.show_full(datastore_id)
+            if state.full or state.official_schema
+            else service.show(datastore_id)
+        )
+        state.render(result, resource="datastore")
     except Exception as exc:
         raise_cli_error(exc)
 

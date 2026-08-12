@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import builtins
+from typing import Any
 
-from opennebula_cli.sdk.models.common import ensure_list, object_get
+from opennebula_cli.sdk.models.common import ensure_list, normalize_mapping, object_get
 from opennebula_cli.sdk.models.datastore import Datastore
 from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
@@ -30,6 +31,9 @@ class DatastoreService:
     def show(self, datastore_id: int) -> Datastore:
         raw = self._transport.call("one.datastore.info", datastore_id)
         return Datastore.from_raw(raw)
+
+    def show_full(self, datastore_id: int) -> dict[str, Any]:
+        return normalize_mapping(self._transport.call("one.datastore.info", datastore_id))
 
     def run_official(self, verb: str, argv: builtins.list[str]) -> object:
         """Run a captured official datastore command not yet modeled by a typed method."""

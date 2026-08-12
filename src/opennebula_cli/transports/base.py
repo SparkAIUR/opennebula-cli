@@ -11,6 +11,13 @@ class OpenNebulaTransport(Protocol):
     def call(self, method: str, *args: object) -> Any:
         """Invoke an OpenNebula backend method."""
 
+    def supports(self, method: str) -> bool:
+        """Return whether the method can be routed without performing I/O."""
+
+    @property
+    def name(self) -> str:
+        """Stable transport identifier for results and errors."""
+
 
 class PluginTransport(Protocol):
     """REST-ish transport for plugins."""

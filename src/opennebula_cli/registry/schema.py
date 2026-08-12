@@ -53,3 +53,27 @@ class FamilyCatalog(BaseModel):
     script: str
     version: str
     commands: dict[str, CommandDefinition]
+
+
+class MethodSignature(BaseModel):
+    """Versioned API method metadata used for routing and safety decisions."""
+
+    model_config = ConfigDict(frozen=True)
+
+    arguments: list[str] = Field(default_factory=list)
+    transport: Literal["xmlrpc", "rest", "composite", "local"] = "xmlrpc"
+    safety: Literal["read", "mutation", "unknown"] = "unknown"
+    idempotency: Literal["safe", "idempotent", "non_idempotent", "unknown"] = "unknown"
+    preview: bool = False
+    notes: str | None = None
+
+
+class VersionProfileCatalog(BaseModel):
+    """Complete command and capability inventory for one server line."""
+
+    model_config = ConfigDict(frozen=True)
+
+    profile: Literal["7.0", "7.4"]
+    server_line: str
+    commands: dict[str, list[str]]
+    methods: dict[str, MethodSignature] = Field(default_factory=dict)

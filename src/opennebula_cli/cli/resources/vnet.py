@@ -1,6 +1,5 @@
 """Virtual network commands."""
 
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
@@ -9,7 +8,6 @@ from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage virtual networks.")
-
 
 
 @app.command(
@@ -35,7 +33,13 @@ def show_vnet(ctx: typer.Context, vnet_id: int) -> None:
 
     state = require_state(ctx)
     try:
-        state.render(state.client().vnet.show(vnet_id), resource="vnet")
+        service = state.client().vnet
+        result = (
+            service.show_full(vnet_id)
+            if state.full or state.official_schema
+            else service.show(vnet_id)
+        )
+        state.render(result, resource="vnet")
     except Exception as exc:
         raise_cli_error(exc)
 

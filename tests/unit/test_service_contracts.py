@@ -2,9 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from opennebula_cli.sdk.exceptions import ApiError
+import pytest
+
+from opennebula_cli.sdk.exceptions import ApiError, PartialFailureError
 from opennebula_cli.sdk.models.common import Ack, normalize_value
+from opennebula_cli.services.cluster import ClusterService
+from opennebula_cli.services.group import GroupService
+from opennebula_cli.services.host import HostService
 from opennebula_cli.services.image import ImageService
+from opennebula_cli.services.official import run_official_command
 from opennebula_cli.services.raw import RawService
 from opennebula_cli.services.template import TemplateService
 from opennebula_cli.services.vm import VmService
@@ -59,9 +65,7 @@ def test_template_service_uses_full_instantiate_signature() -> None:
     assert result.action == "instantiate"
     assert result.resource == "vm"
     assert result.id == 42
-    assert transport.calls == [
-        ("one.template.instantiate", (7, "test-vm", False, "", False))
-    ]
+    assert transport.calls == [("one.template.instantiate", (7, "test-vm", False, "", False))]
 
 
 def test_template_service_instantiate_accepts_override_template() -> None:
@@ -100,7 +104,23 @@ def test_template_service_create_uses_allocate() -> None:
     assert transport.calls == [("one.template.allocate", ('NAME = "created-template"',))]
 
 
-def test_vm_poweroff_retries_pending_state() -> None:
+def test_official_template_update_uses_integer_merge_mode(tmp_path: Any) -> None:
+    template_file = tmp_path / "patch.one"
+    template_file.write_text('CONTEXT = [ ADDED = "beta" ]\n', encoding="utf-8")
+    transport = StubTransport({"one.template.update": True})
+
+    result = run_official_command(
+        transport,
+        "template",
+        "update",
+        ["92", "--file", str(template_file), "--append"],
+    )
+
+    assert result == Ack(resource="template", id=92, action="update")
+    assert transport.calls == [("one.template.update", (92, 'CONTEXT = [ ADDED = "beta" ]\n', 1))]
+
+
+def test_vm_poweroff_does_not_replay_after_api_error() -> None:
     transport = StubTransport(
         {
             "one.vm.action": [
@@ -114,14 +134,10 @@ def test_vm_poweroff_retries_pending_state() -> None:
     )
     service = VmService(transport)
 
-    result = service.poweroff(9, wait=False)
+    with pytest.raises(ApiError):
+        service.poweroff(9, wait=False)
 
-    assert isinstance(result, Ack)
-    assert result.action == "poweroff"
-    assert transport.calls == [
-        ("one.vm.action", ("poweroff", 9)),
-        ("one.vm.action", ("poweroff", 9)),
-    ]
+    assert transport.calls == [("one.vm.action", ("poweroff", 9))]
 
 
 def test_vm_disk_attach_builds_single_disk_template() -> None:
@@ -221,6 +237,94 @@ def test_vm_lifecycle_action_uses_one_vm_action() -> None:
     assert transport.calls == [("one.vm.action", ("reboot-hard", 9))]
 
 
+def test_opennebula_74_vm_methods_use_exact_signatures() -> None:
+    transport = StubTransport(
+        {
+            "one.vm.exec": True,
+            "one.vm.retryexec": True,
+            "one.vm.cancelexec": True,
+            "one.vm.vmgroupadd": True,
+            "one.vm.vmgroupdel": True,
+        }
+    )
+    service = VmService(transport)
+
+    service.exec(9, "uname -a", stdin="hello")
+    service.exec_retry(9)
+    service.exec_cancel(9)
+    service.vmgroup_add(9, 4, "worker")
+    service.vmgroup_del(9)
+
+    assert transport.calls == [
+        ("one.vm.exec", (9, "uname -a", "aGVsbG8=")),
+        ("one.vm.retryexec", (9,)),
+        ("one.vm.cancelexec", (9,)),
+        ("one.vm.vmgroupadd", (9, 4, "worker")),
+        ("one.vm.vmgroupdel", (9,)),
+    ]
+
+
+def test_opennebula_74_cluster_and_group_methods_use_exact_signatures() -> None:
+    transport = StubTransport(
+        {
+            "one.cluster.optimize": True,
+            "one.cluster.planexecute": True,
+            "one.cluster.plandelete": True,
+            "one.group.vlan": True,
+        }
+    )
+
+    ClusterService(transport).optimize(2)
+    ClusterService(transport).plan_execute(2)
+    ClusterService(transport).plan_delete(2)
+    GroupService(transport).set_vlan(5, 'VLAN_IDS = "100-120"')
+
+    assert transport.calls == [
+        ("one.cluster.optimize", (2,)),
+        ("one.cluster.planexecute", (2,)),
+        ("one.cluster.plandelete", (2,)),
+        ("one.group.vlan", (5, 'VLAN_IDS = "100-120"')),
+    ]
+
+
+def test_host_flush_matches_official_disable_and_reschedule_composite() -> None:
+    transport = StubTransport(
+        {
+            "one.host.status": True,
+            "one.vmpool.infoextended": {
+                "VM": [
+                    {"ID": "9", "HISTORY_RECORDS": {"HISTORY": {"HID": "3"}}},
+                    {"ID": "10", "HISTORY_RECORDS": {"HISTORY": {"HID": "4"}}},
+                ]
+            },
+            "one.vm.action": True,
+        }
+    )
+
+    result = HostService(transport).flush(3)
+
+    assert [item.action for item in result] == ["disable", "resched"]
+    assert transport.calls == [
+        ("one.host.status", (3, 1)),
+        ("one.vmpool.infoextended", (-2, -1, -1, -1)),
+        ("one.vm.action", ("resched", 9)),
+    ]
+
+
+def test_official_batch_reports_partial_failure_after_attempting_each_member() -> None:
+    transport = StubTransport({"one.image.delete": [True, ApiError("blocked"), True]})
+
+    with pytest.raises(PartialFailureError) as captured:
+        run_official_command(transport, "image", "delete", ["1,2,3"])
+
+    assert captured.value.failures[0]["id"] == 2
+    assert transport.calls == [
+        ("one.image.delete", (1,)),
+        ("one.image.delete", (2,)),
+        ("one.image.delete", (3,)),
+    ]
+
+
 def test_vm_wait_state_matches_state_and_lcm_state() -> None:
     transport = StubTransport(
         {
@@ -305,6 +409,6 @@ def test_raw_service_returns_normalized_result() -> None:
     result = service.call("one.vm.info", [9])
 
     assert result.method == "one.vm.info"
-    assert result.args == [9]
+    assert result.transport == "unknown"
     assert result.result == {"ID": "9", "NAME": "raw-vm"}
     assert transport.calls == [("one.vm.info", (9,))]

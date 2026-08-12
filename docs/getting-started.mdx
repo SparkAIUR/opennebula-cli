@@ -4,7 +4,7 @@
 
 - Python `3.11+`
 - `uv`
-- network access to an OpenNebula `7.0.x` endpoint
+- network access to an OpenNebula `7.4.x` or `7.0.x` endpoint
 - credentials available through an auth file, profile, or explicit CLI/env auth
 
 ## Install
@@ -12,13 +12,13 @@
 Install the released CLI:
 
 ```bash
-uv tool install opennebula-cli==7.0.2
+uv tool install opennebula-cli==7.4.0
 ```
 
 Or run directly without a persistent install:
 
 ```bash
-uvx --from opennebula-cli==7.0.2 one --help
+uvx --from opennebula-cli==7.4.0 one --help
 ```
 
 For repo development:
@@ -66,6 +66,21 @@ onevm list
 onehost show 0
 oneimage --output json list
 onecluster --output yaml show 0
+```
+
+Prove the selected target before automation or mutation:
+
+```bash
+one --context staging --output json capabilities
+one --context staging --require-context staging --output json doctor
+```
+
+Inspect without lossy model projection:
+
+```bash
+one --context staging --output json --full datastore show 5
+one --context staging --output xml --official-schema vm show 42
+one --context staging --output jsonl --select id,name,state vm list
 ```
 
 ## Workflow quickstart

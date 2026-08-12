@@ -61,8 +61,10 @@ class StateStore:
     def connect(self) -> sqlite3.Connection:
         """Open DB connection and ensure parent directory exists."""
 
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        os.chmod(self.path.parent, 0o700)
         connection = sqlite3.connect(self.path)
+        os.chmod(self.path, 0o600)
         connection.row_factory = sqlite3.Row
         return connection
 
@@ -116,8 +118,7 @@ class StateStore:
             ).fetchone()
             enabled = bool(int(row["enabled"])) if row else False
             password_set = bool(
-                (row["password_salt"] if row else None)
-                and (row["password_hash"] if row else None)
+                (row["password_salt"] if row else None) and (row["password_hash"] if row else None)
             )
             actions = frozenset(
                 item["action"]

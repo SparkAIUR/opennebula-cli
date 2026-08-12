@@ -12,6 +12,15 @@ from opennebula_cli.cli.official_help_texts import official_command_description
 from opennebula_cli.cli.runtime import require_state
 
 COMMAND_CONTEXT = {"allow_extra_args": True, "ignore_unknown_options": True}
+VERSIONED_CAPABILITIES = {
+    ("cluster", "optimize"): "one.cluster.optimize",
+    ("cluster", "plandelete"): "one.cluster.plandelete",
+    ("cluster", "planexecute"): "one.cluster.planexecute",
+    ("group", "vlan"): "one.group.vlan",
+    ("vnet", "addleases"): "official.onevnet.addleases",
+    ("vnet", "rmleases"): "official.onevnet.rmleases",
+    ("flow", "sched-delete"): "oneflow.sched_delete",
+}
 
 
 def _describe_official_command(family: str, command_name: str) -> str:
@@ -50,7 +59,11 @@ def _make_official_command(family: str, command_name: str) -> Any:
 
         state = require_state(ctx)
         try:
-            service: Any = getattr(state.client(), family)
+            client = state.client()
+            capability = VERSIONED_CAPABILITIES.get((family, command_name))
+            if capability is not None:
+                client.require_capability(capability)
+            service: Any = getattr(client, family.replace("-", "_"))
             result = service.run_official(command_name, list(ctx.args))
             state.render(result, resource=family)
         except Exception as exc:

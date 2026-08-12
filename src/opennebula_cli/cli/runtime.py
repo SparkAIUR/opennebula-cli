@@ -16,4 +16,3 @@ def require_state(ctx: typer.Context) -> AppState:
     if state is None:
         raise RuntimeError("CLI runtime state is not initialized.")
     return cast(AppState, state)
-

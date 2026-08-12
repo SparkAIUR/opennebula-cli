@@ -5,7 +5,7 @@
 ```bash
 uv sync --group dev
 uv run ruff check .
-uv run mypy src tests tools
+uv run mypy src
 uv run pytest
 uv run python tools/check_catalog_schema.py
 uv build
@@ -17,7 +17,7 @@ Optional `just` workflow:
 just sync
 just check
 just build
-just release-preflight v7.0.2
+just release-preflight v7.4.0
 ```
 
 ## Contribution rules
@@ -32,7 +32,7 @@ just release-preflight v7.0.2
 - add or update redaction tests when capture behavior changes
 - keep disposable E2E fixtures namespaced under `e2e-*`
 
-## Release process for `7.0.x`
+## Release process for `7.4.x`
 
 Public package versions now mirror the targeted OpenNebula compatibility line.
 
@@ -40,14 +40,13 @@ Rules:
 
 - release tags must equal `project.version`
 - GitHub Actions publishes to PyPI only when the pushed tag matches the package version exactly
-- `7.0.0` is the first compatibility-mirrored public release
-- `7.0.2` adds workflow, state lock/context operations (including `state ctx sync`), and endpoint validation enhancements while staying on the same compatibility target
+- `7.4.0` targets OpenNebula 7.4 and retains the complete 7.0 profile
 - `0.1.0` remains only as the historical bootstrap release
 
 Preflight a release tag locally with:
 
 ```bash
-uv run python tools/check_release_version.py --tag v7.0.2
+uv run python tools/check_release_version.py --tag v7.4.0
 ```
 
 ## Required release gates
@@ -56,7 +55,8 @@ Before tagging a compatibility release:
 
 - local lint, typing, tests, and build must pass
 - catalog validation must pass
-- the live harness must pass against a disposable OpenNebula environment
+- authenticated target-line read-only evidence and both transport backends must pass
+- mutation evidence must remain separate; never use production or non-`e2e-*` resources
 - public docs must match the real CLI contract and version markers
 
 ## Private maintainer workspace

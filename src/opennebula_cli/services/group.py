@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import builtins
 
-from opennebula_cli.sdk.models.common import ensure_list, object_get
+from opennebula_cli.sdk.models.common import Ack, ensure_list, object_get
 from opennebula_cli.sdk.models.group import Group
 from opennebula_cli.services.official import run_official_command
 from opennebula_cli.transports.base import OpenNebulaTransport
@@ -24,6 +24,10 @@ class GroupService:
     def show(self, group_id: int) -> Group:
         raw = self._transport.call("one.group.info", group_id)
         return Group.from_raw(raw)
+
+    def set_vlan(self, group_id: int, vlan_rules: str) -> Ack:
+        self._transport.call("one.group.vlan", group_id, vlan_rules)
+        return Ack(resource="group", id=group_id, action="vlan")
 
     def run_official(self, verb: str, argv: builtins.list[str]) -> object:
         """Run a captured official group command not yet modeled by a typed method."""

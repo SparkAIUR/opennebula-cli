@@ -75,3 +75,33 @@ def test_flow_service_uses_oneflow_host_header_from_context_config(monkeypatch: 
     assert fake.calls
     assert fake.calls[0]["headers"]["Host"] == "localhost"
     assert fake.calls[0]["url"] == "http://frontend:2474/service"
+
+
+def test_flow_service_normalizes_service_and_role_states(monkeypatch: Any) -> None:
+    document = {
+        "ID": "7",
+        "NAME": "official-name",
+        "TEMPLATE": {
+            "BODY": {
+                "name": "service-name",
+                "state": 2,
+                "roles": [
+                    {"name": "web", "state": 4, "nodes": [{"deploy_id": 42}]},
+                    {"name": "future", "state": 99, "nodes": []},
+                ],
+            }
+        },
+    }
+    fake = FakeUrlOpen([json.dumps({"DOCUMENT_POOL": {"DOCUMENT": document}}).encode("utf-8")])
+    monkeypatch.setattr("opennebula_cli.services.flow.urlopen", fake)
+
+    records = OneFlowService(_config()).run_official("list", [])
+
+    assert isinstance(records, list)
+    service = records[0]
+    assert service.id == 7
+    assert (service.state, service.state_id) == ("RUNNING", 2)
+    assert (service.roles[0].state, service.roles[0].state_id) == ("WARNING", 4)
+    assert service.roles[0].nodes == [{"deploy_id": 42}]
+    assert (service.roles[1].state, service.roles[1].state_id) == ("UNKNOWN_99", 99)
+    assert service.raw == document

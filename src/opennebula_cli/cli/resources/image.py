@@ -1,6 +1,5 @@
 """Image commands."""
 
-
 import typer
 
 from opennebula_cli.cli.error_handlers import raise_cli_error
@@ -9,7 +8,6 @@ from opennebula_cli.cli.resources.official import register_official_commands
 from opennebula_cli.cli.runtime import require_state
 
 app = typer.Typer(no_args_is_help=True, help="Manage images.")
-
 
 
 @app.command(
@@ -41,7 +39,7 @@ def show_image(
     try:
         result = (
             state.client().image.show_full(image_id)
-            if full
+            if full or state.full or state.official_schema
             else state.client().image.show(image_id)
         )
         state.render(result, resource="image")

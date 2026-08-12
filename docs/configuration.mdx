@@ -22,6 +22,7 @@ Supported environment variables:
 - `OPENNEBULA_CLI_STATE_DB`
 - `OPENNEBULA_CLI_STATE_DIR`
 - `OPENNEBULA_CLI_AUTH_CONFIG`
+- `ONEFORM_URL`
 
 State and context defaults:
 
@@ -84,6 +85,7 @@ Service endpoint behavior:
   - `firestone` (Sunstone API) -> `:2616`
   - `oneflow` -> `:2474`
 - explicit `endpoints.*` values take precedence over derived ports
+- OneForm is never derived; configure `endpoints.oneform` or `ONEFORM_URL`
 - optional `config` keys can tune behavior for service adapters (for example `oneflow_host` for Host header override)
 
 Example `auth.yaml`:
@@ -93,19 +95,21 @@ current_context: staging
 contexts:
   - name: staging
     endpoint: https://staging.opennebula.example.com/RPC2
-    version: v7.0.2
+    version: v7.4.0
     endpoints:
       web: https://staging.opennebula.example.com:9869
       firestone: https://staging.opennebula.example.com:2616
       oneflow: https://staging.opennebula.example.com:2474
+      oneform: https://staging-oneform.example.com:13013
     config:
       oneflow_host: localhost
+      mutation_policy: deny
     auth:
       username: user1
       password: pass1
   - name: production
     endpoint: https://prod.opennebula.example.com/RPC2
-    version: v7.0.2
+    version: v7.4.0
     auth:
       username: user2
       password: pass2
@@ -129,6 +133,7 @@ one state ctx list
 one state ctx show staging
 one state ctx validate
 one state lock enable --actions=all --commands=vm
+one --output json state lock status
 one state lock disable
 ```
 
@@ -141,12 +146,17 @@ one state ctx list --source db
 one state ctx validate --source auto
 one state ctx validate --all
 one state ctx validate --context staging --timeout 5
+one --context staging --require-context staging doctor
 ```
 
 When auth config is active, `one state ctx use <name>` validates that the context
 exists in `OPENNEBULA_CLI_AUTH_CONFIG` and then updates `current_context: <name>`.
 
 Lock checks are local-only and enforced before command execution.
+
+`--context <name>` selects a stored context for one invocation without changing `current_context`. `--require-context <name>` fails before server contact if the selected identity differs. Set `config.mutation_policy: deny` on read-only contexts; the SDK transport then rejects non-read XML-RPC methods before backend contact, and the OneFlow/OneForm services apply the same policy.
+
+Stored context passwords remain plaintext local credentials. The CLI enforces mode `0700` on parent directories and `0600` on auth/state files, but an external secret reference or platform keychain is preferable when available.
 
 ## Lock recovery and safeguards
 
@@ -204,6 +214,8 @@ For scripts and CI, prefer:
 ```bash
 one --output json --no-pager vm list
 ```
+
+Machine output writes exactly one parser-clean payload to stdout. Diagnostics and structured errors use stderr. Available extraction controls are `--value`, `--select`, `--filter path=value`, and `--sort`; the same case-insensitive dotted field-path grammar is used throughout.
 
 ## Workflow render network behavior
 

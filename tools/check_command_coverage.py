@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 
 from opennebula_cli.cli.app import app
+from opennebula_cli.registry.profiles import ProfileName, commands_for_profile
 
 RESOURCE_FAMILIES = {
     "onevm": "vm",
@@ -39,6 +40,11 @@ RESOURCE_FAMILIES = {
     "oneshowback": "showback",
     "oneacct": "acct",
     "onegather": "gather",
+    "oneform": "form",
+    "oneprovider": "provider",
+    "oneprovider-template": "provider-template",
+    "oneprovision": "provision",
+    "oneprovision-template": "provision-template",
 }
 CUSTOM_COMMANDS = {
     "vm": {"disk-list", "wait", "poweroff-hard", "reboot-hard"},
@@ -183,31 +189,56 @@ def typer_main_command() -> click.Command:
     return get_command(app)
 
 
-def coverage_report(notes_path: Path) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
-    expected = captured_commands(notes_path)
+def coverage_report(
+    profile: ProfileName = "7.4",
+    *,
+    capture_path: Path | None = None,
+) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    """Compare the installed CLI union with a shipped server-line profile.
+
+    A private capture can be supplied explicitly for maintainer delta review, but
+    normal CI and package installs never depend on ``refs/``.
+    """
+
+    expected = commands_for_profile(profile)
+    if capture_path is not None:
+        captured = captured_commands(capture_path)
+        capture_delta = {
+            family: expected.get(family, set()) ^ commands for family, commands in captured.items()
+        }
+        if any(capture_delta.values()):
+            details = "; ".join(
+                f"{family}={sorted(delta)}"
+                for family, delta in sorted(capture_delta.items())
+                if delta
+            )
+            raise RuntimeError(f"Capture differs from shipped {profile} profile: {details}")
     actual = implemented_commands()
+    other_profile: ProfileName = "7.0" if profile == "7.4" else "7.4"
+    other_commands = commands_for_profile(other_profile)
     missing: dict[str, set[str]] = {}
     extra: dict[str, set[str]] = {}
     for family, commands in expected.items():
-        extras_allowed = CUSTOM_COMMANDS.get(family, set())
+        extras_allowed = CUSTOM_COMMANDS.get(family, set()) | other_commands.get(family, set())
         missing[family] = commands - actual.get(family, set())
         extra[family] = actual.get(family, set()) - commands - extras_allowed
     return missing, extra
 
 
 def main() -> None:
-    notes_path = Path("refs/notes/list-of-command-output.md")
-    missing, extra = coverage_report(notes_path)
     has_gap = False
-    for family in sorted(missing):
-        if missing[family]:
-            has_gap = True
-            print(f"{family}: missing {sorted(missing[family])}")
-        if extra[family]:
-            print(f"{family}: extra non-official {sorted(extra[family])}")
+    for profile in ("7.0", "7.4"):
+        missing, extra = coverage_report(profile)
+        for family in sorted(missing):
+            if missing[family]:
+                has_gap = True
+                print(f"{profile} {family}: missing {sorted(missing[family])}")
+            if extra[family]:
+                has_gap = True
+                print(f"{profile} {family}: extra non-official {sorted(extra[family])}")
     if has_gap:
         raise SystemExit(1)
-    print("Command coverage matches captured command output.")
+    print("Command coverage matches shipped OpenNebula 7.0 and 7.4 profiles.")
 
 
 if __name__ == "__main__":
