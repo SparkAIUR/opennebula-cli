@@ -64,9 +64,6 @@ def _resource_lock_callback(resource_name: str) -> Callable[[typer.Context], Non
             invocation_args.append(str(click_ctx.invoked_subcommand))
         try:
             ensure_command_allowed(invocation_args)
-            state = click_ctx.find_object(AppState)
-            if state is not None:
-                state.enforce_operation(resource_name, click_ctx.invoked_subcommand)
         except Exception as exc:
             raise_cli_error(exc)
 

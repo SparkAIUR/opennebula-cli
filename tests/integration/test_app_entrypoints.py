@@ -1,7 +1,11 @@
 from pathlib import Path
+from types import SimpleNamespace
+
+import click
 
 from opennebula_cli.cli.app import app
 from opennebula_cli.cli.resources.raw import _load_args
+from opennebula_cli.sdk.models.vm import Vm
 
 
 def test_template_help(runner) -> None:
@@ -42,7 +46,7 @@ def test_raw_group_help(runner) -> None:
 
     call_result = runner.invoke(app, ["raw", "call", "--help"])
     assert call_result.exit_code == 0
-    assert "i-understand-this-is-unsafe" in call_result.stdout
+    assert "i-understand-this-is-unsafe" in click.unstyle(call_result.stdout)
 
 
 def test_agents_command_prints_markdown_guide(runner) -> None:
@@ -72,7 +76,7 @@ def test_recover_requires_exactly_one_action_flag(runner) -> None:
 def test_raw_mutation_requires_unsafe_flag_before_config_resolution(runner) -> None:
     result = runner.invoke(app, ["raw", "call", "one.vm.delete", "--json-args-text", "[42]"])
     assert result.exit_code != 0
-    assert "i-understand-this-is-unsafe" in result.output
+    assert "i-understand-this-is-unsafe" in click.unstyle(result.output)
 
 
 def test_vm_wait_rejects_invalid_duration_before_config_resolution(runner) -> None:
@@ -81,7 +85,12 @@ def test_vm_wait_rejects_invalid_duration_before_config_resolution(runner) -> No
     assert "Duration must be seconds" in result.output
 
 
-def test_vm_show_accepts_trailing_output_option(runner) -> None:
+def test_vm_show_accepts_trailing_output_option(runner, monkeypatch) -> None:
+    vm_service = SimpleNamespace(show=lambda vm_id: Vm(id=vm_id, name="fixture", state="ACTIVE"))
+    monkeypatch.setattr(
+        "opennebula_cli.cli.state.AppState.client",
+        lambda _self: SimpleNamespace(vm=vm_service),
+    )
     result = runner.invoke(app, ["vm", "show", "42", "--output", "json"])
     assert result.exit_code == 0
     assert '"id": 42' in result.stdout
